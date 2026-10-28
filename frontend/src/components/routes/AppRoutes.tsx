@@ -15,6 +15,9 @@ import PatientDashboard from "../pages/patient/PatientDashboard";
 import AdminLayout from "../layouts/AdminLayout";
 import DoctorLayout from "../layouts/DoctorLayout";
 import PatientLayout from "../layouts/PatientLayout";
+import Patients from "../pages/patient/Patients";
+import ProfileSettings from "../../components/pages/settings/ProfileSettings";
+
 
 import ProtectedRoute from "./ProtectedRoute";
 import type { UserRole } from "../types/auth.types";
@@ -81,6 +84,8 @@ function AppRoutes() {
         <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminDashboard />} />
+            <Route path="patients" element={<Patients />} />
+            <Route path="settings" element={<ProfileSettings />} />
           </Route>
         </Route>
 

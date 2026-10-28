@@ -15,12 +15,12 @@ const Sidebar = () => {
         },
         {
             title: "Patients",
-            url: "/patients",
+            url: "/admin/patients",
             icon: RxPeople,
         },
         {
             title: "Settings",
-            url: "/settings",
+            url: "/admin/settings",
             icon: IoSettingsOutline,
         },
     ];
