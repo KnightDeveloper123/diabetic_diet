@@ -1,6 +1,8 @@
+
 import { Box, Flex, Heading, Button } from "@chakra-ui/react";
-import { Link, Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import Sidebar from "../../menu/Sidebar"
 
 function AdminLayout() {
   const { user, logout } = useAuth();
@@ -13,22 +15,12 @@ function AdminLayout() {
 
   return (
     <Flex minH="100vh" bg="gray.50">
-      <Box
-        w="240px"
-        bg="white"
-        p={5}
-        borderRightWidth="1px"
-      >
-        <Heading size="md" mb={6}>
-          Admin Portal
-        </Heading>
+      {/* Sidebar */}
+      <Sidebar />
 
-        <Flex direction="column" gap={4}>
-          <Link to="/admin">Dashboard</Link>
-        </Flex>
-      </Box>
-
+      {/* Main Content */}
       <Box flex="1" minW="0">
+        {/* Header */}
         <Flex
           bg="white"
           p={4}
@@ -36,16 +28,20 @@ function AdminLayout() {
           align="center"
           borderBottomWidth="1px"
         >
-          <Heading size="md">Diabetic Diet Assistant</Heading>
+          <Heading size="md">
+            Diabetic Diet Assistant
+          </Heading>
 
           <Flex align="center" gap={3}>
-            <Box>{user?.name} </Box>
+            <Box>{user?.name}</Box>
+
             <Button onClick={handleLogout} size="sm">
               Logout
             </Button>
           </Flex>
         </Flex>
 
+        {/* Page Content */}
         <Box p={6}>
           <Outlet />
         </Box>
