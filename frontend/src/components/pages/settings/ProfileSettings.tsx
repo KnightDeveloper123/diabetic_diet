@@ -9,10 +9,12 @@ import {
     Text,
 } from "@chakra-ui/react";
 import { IoWarningOutline } from "react-icons/io5";
+
 interface ProfileForm {
     name: string;
     email: string;
     phone: string;
+    doctorName: string;
     address: string;
 }
 
@@ -20,6 +22,7 @@ const initialProfile: ProfileForm = {
     name: "",
     email: "",
     phone: "",
+    doctorName: "Dr. Ananya Rao",
     address: "",
 };
 
@@ -170,7 +173,7 @@ const ProfileSettings = () => {
                     </Text>
                 </Box>
 
-                <Box borderTop="1px solid #E2E8F0" />
+                {/* <Box borderTop="1px solid #E2E8F0" /> */}
 
                 {/* Form fields */}
                 <Box p={{ base: 4, md: 6 }}>
@@ -195,17 +198,47 @@ const ProfileSettings = () => {
                         )}
 
                         {renderField(
-                            "Address",
-                            "address",
-                            "Enter your address"
-                        )}
-
-                        {renderField(
                             "Phone",
                             "phone",
                             "Enter your phone number",
                             "tel"
                         )}
+
+                        {renderField(
+                            "Doctor Name",
+                            "doctorName",
+                            "Enter doctor name"
+                        )}
+
+                        <Box gridColumn={{ base: "auto", md: "1 / -1" }}>
+                            <Text
+                                mb={2}
+                                fontSize="14px"
+                                fontWeight="500"
+                                color="#334155"
+                            >
+                                Address
+                            </Text>
+
+                            <Input
+                                value={profile.address}
+                                onChange={(e) =>
+                                    handleChange("address", e.target.value)
+                                }
+                                placeholder="Enter your address"
+                                h="100px"
+                                border="1px solid #CBD5E1"
+                                borderRadius="7px"
+                                fontSize="14px"
+                                bg="white"
+                                color="#1E293B"
+                                _placeholder={{ color: "#94A3B8" }}
+                                _focus={{
+                                    borderColor: "#2160C4",
+                                    boxShadow: "0 0 0 1px #2160C4",
+                                }}
+                            />
+                        </Box>
                     </Grid>
                 </Box>
 
@@ -215,7 +248,7 @@ const ProfileSettings = () => {
                     align="center"
                     gap={3}
                     p={{ base: 4, md: 6 }}
-                    borderTop="1px solid #E2E8F0"
+                    // borderTop="1px solid #E2E8F0"
                     flexWrap="wrap"
                 >
                     <Button

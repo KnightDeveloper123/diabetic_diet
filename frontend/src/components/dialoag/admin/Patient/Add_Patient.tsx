@@ -9,6 +9,7 @@ import {
     VStack,
 } from "@chakra-ui/react";
 import CustomDialog from "../../../../components/reusable/CustomDialog";
+import { MdOutlineMail } from "react-icons/md";
 
 interface AddPatientProps {
     open: boolean;
@@ -197,7 +198,9 @@ const AddPatient = ({ open, onClose, onAdded }: AddPatientProps) => {
                                         bg="#2160C4"
                                         color="white"
                                         _hover={{ bg: "#194FA5" }}
+
                                     >
+                                        <MdOutlineMail />
                                         Add patient
                                     </Button>
                                 </Flex>
