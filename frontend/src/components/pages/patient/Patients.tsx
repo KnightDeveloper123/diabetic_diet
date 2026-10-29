@@ -66,10 +66,10 @@ const Patients = () => {
         );
     }, [search]);
 
-    const handleAddPatient = () => {
-        // Connect your Add Patient form or dialog here.
-        console.log("Add patient clicked");
-    };
+    // const handleAddPatient = () => {
+    //     // Connect your Add Patient form or dialog here.
+    //     console.log("Add patient clicked");
+    // };
 
     // const handleViewPatient = (patient) => {
     //     // Connect your patient details route here.
@@ -82,8 +82,9 @@ const Patients = () => {
             gap={5}
             w="100%"
             minH="100vh"
-            bg="#F5F7FA"
+            bg="#FAFAFA"
             p={{ base: 3, md: 5 }}
+            fontFamily="Arial, sans-serif"
         >
             {/* Page heading */}
             <Flex
@@ -99,7 +100,10 @@ const Patients = () => {
                 <Text
                     fontSize="24px"
                     fontWeight="600"
+                    fontFamily="Arial, sans-serif"
                     color="#1E293B"
+
+
                 >
                     Patients
                 </Text>
@@ -109,6 +113,7 @@ const Patients = () => {
                     bg="#2160C4"
                     color="white"
                     borderRadius="7px"
+                    fontFamily="Arial, sans-serif"
                     size="sm"
                     px={4}
                     h="38px"
@@ -128,6 +133,7 @@ const Patients = () => {
                 overflow="hidden"
                 w="100%"
                 boxShadow="0 1px 2px rgba(15, 23, 42, 0.05)"
+                fontFamily="Arial, sans-serif"
             >
                 {/* Card heading and search */}
                 <Flex

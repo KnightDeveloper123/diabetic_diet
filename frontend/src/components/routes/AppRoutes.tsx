@@ -8,6 +8,7 @@ import {
 import { useAuth } from "../context/AuthContext";
 
 import Login from "../pages/auth/login";
+import Register from "../pages/auth/Register";
 import AdminDashboard from "../pages/admin/AdminDashboard";
 import DoctorDashboard from "../pages/doctor/DoctorDashboard";
 import PatientDashboard from "../pages/patient/PatientDashboard";
@@ -78,6 +79,8 @@ function AppRoutes() {
         <Route path="/" element={<HomeRedirect />} />
 
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+
         <Route path="/unauthorized" element={<Unauthorized />} />
 
         {/* Admin routes */}

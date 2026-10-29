@@ -35,6 +35,7 @@ const Sidebar = () => {
             borderColor="gray.200"
             py={5}
             px={3}
+            fontFamily="Arial, sans-serif"
         >
             <Text
                 fontSize="xl"
@@ -75,7 +76,7 @@ const Sidebar = () => {
                                 >
                                     <ItemIcon size={21} />
 
-                                    <Text fontSize="sm">
+                                    <Text fontSize="sm" fontWeight={500}>
                                         {item.title}
                                     </Text>
                                 </Flex>

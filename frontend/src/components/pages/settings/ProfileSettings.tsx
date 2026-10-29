@@ -8,8 +8,7 @@ import {
     Input,
     Text,
 } from "@chakra-ui/react";
-import { LuCircleAlert } from "react-icons/lu";
-
+import { IoWarningOutline } from "react-icons/io5";
 interface ProfileForm {
     name: string;
     email: string;
@@ -63,6 +62,7 @@ const ProfileSettings = () => {
                 fontSize="14px"
                 fontWeight="500"
                 color="#334155"
+                fontFamily="Arial, sans-serif"
             >
                 {label}
             </Text>
@@ -93,8 +93,10 @@ const ProfileSettings = () => {
         <Box
             w="100%"
             minH="100vh"
-            bg="#F5F7FA"
+            bg="#FAFAFA"
             p={{ base: 4, md: 6 }}
+            fontFamily="Arial, sans-serif"
+
         >
             {/* Page heading */}
             <Heading
@@ -107,6 +109,7 @@ const ProfileSettings = () => {
             </Heading>
 
             {/* Unsaved changes alert */}
+            {/* Unsaved changes alert */}
             {hasUnsavedChanges && (
                 <Flex
                     align="flex-start"
@@ -118,7 +121,7 @@ const ProfileSettings = () => {
                     borderRadius="9px"
                 >
                     <Box color="#B7791F" mt="2px">
-                        <LuCircleAlert size={21} />
+                        <IoWarningOutline size={21} />
                     </Box>
 
                     <Box>
@@ -135,8 +138,7 @@ const ProfileSettings = () => {
                             color="#854D0E"
                             mt={1}
                         >
-                            Save or cancel your changes before
-                            leaving this page.
+                            Save or cancel your changes before leaving this page.
                         </Text>
                     </Box>
                 </Flex>
@@ -193,16 +195,16 @@ const ProfileSettings = () => {
                         )}
 
                         {renderField(
+                            "Address",
+                            "address",
+                            "Enter your address"
+                        )}
+
+                        {renderField(
                             "Phone",
                             "phone",
                             "Enter your phone number",
                             "tel"
-                        )}
-
-                        {renderField(
-                            "Address",
-                            "address",
-                            "Enter your address"
                         )}
                     </Grid>
                 </Box>
