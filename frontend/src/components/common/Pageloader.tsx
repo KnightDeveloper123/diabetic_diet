@@ -1,7 +1,8 @@
-import React from 'react'
+import { Box } from '@chakra-ui/react'
+
 
 export default function Pageloader() {
   return (
-    <div>Pageloader</div>
+    <Box>Pageloader</Box>
   )
 }

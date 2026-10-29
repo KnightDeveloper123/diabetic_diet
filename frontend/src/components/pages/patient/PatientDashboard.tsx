@@ -1,7 +1,8 @@
-import React from 'react'
+import { Box } from '@chakra-ui/react'
+
 
 export default function PatientDashboard() {
   return (
-    <div>PatientDashboard</div>
+    <Box>PatientDashboard</Box>
   )
 }
