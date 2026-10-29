@@ -10,7 +10,7 @@ import {
 import { useMemo, useState } from "react";
 import { CiSearch } from "react-icons/ci";
 import { LuPlus, LuChevronRight } from "react-icons/lu";
-import AddPatient from "../../../../src/components/pages/dialoag/admin/Patient/Add_Patient";
+import AddPatient from "../../../../src/components/dialoag/admin/Patient/Add_Patient";
 
 const Patients = () => {
     const [search, setSearch] = useState("");
