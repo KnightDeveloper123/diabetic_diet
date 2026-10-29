@@ -83,40 +83,33 @@ const Patients = () => {
             w="100%"
             minH="100vh"
             bg="#FAFAFA"
-            p={{ base: 3, md: 5 }}
+            p={{ base: 3, md: 5, lg: 6 }}
             fontFamily="Arial, sans-serif"
         >
+            <AddPatient
+                open={isAddPatientOpen}
+                onClose={() => setIsAddPatientOpen(false)}
+            />
+
             {/* Page heading */}
             <Flex
                 justify="space-between"
-                align="center"
-                flexWrap="wrap"
+                align={{ base: "stretch", sm: "center" }}
+                direction={{ base: "column", sm: "row" }}
                 gap={3}
             >
-                <AddPatient
-                    open={isAddPatientOpen}
-                    onClose={() => setIsAddPatientOpen(false)}
-                />
-                <Text
-                    fontSize="24px"
-                    fontWeight="600"
-                    fontFamily="Arial, sans-serif"
-                    color="#1E293B"
-
-
-                >
+                <Text fontSize={{ base: "22px", md: "24px" }} fontWeight="600" color="#1E293B">
                     Patients
                 </Text>
-
 
                 <Button
                     bg="#2160C4"
                     color="white"
                     borderRadius="7px"
-                    fontFamily="Arial, sans-serif"
                     size="sm"
                     px={4}
                     h="38px"
+                    alignSelf={{ base: "flex-start", sm: "auto" }}
                     onClick={() => setIsAddPatientOpen(true)}
                     _hover={{ bg: "#194FA5" }}
                 >
@@ -132,31 +125,22 @@ const Patients = () => {
                 borderRadius="12px"
                 overflow="hidden"
                 w="100%"
+                minW="0"
                 boxShadow="0 1px 2px rgba(15, 23, 42, 0.05)"
-                fontFamily="Arial, sans-serif"
             >
-                {/* Card heading and search */}
+                {/* Heading and search */}
                 <Flex
-                    p={4}
+                    p={{ base: 3, md: 4 }}
                     justify="space-between"
-                    align="center"
-                    flexWrap="wrap"
+                    align={{ base: "stretch", md: "center" }}
+                    direction={{ base: "column", md: "row" }}
                     gap={4}
                 >
                     <Box>
-                        <Text
-                            fontSize="16px"
-                            fontWeight="600"
-                            color="#1E293B"
-                        >
+                        <Text fontSize="16px" fontWeight="600" color="#1E293B">
                             Your patients
                         </Text>
-
-                        <Text
-                            fontSize="13px"
-                            color="#64748B"
-                            mt={1}
-                        >
+                        <Text fontSize="13px" color="#64748B" mt={1}>
                             {filteredPatients.length} patients
                         </Text>
                     </Box>
@@ -168,36 +152,94 @@ const Patients = () => {
                         borderRadius="7px"
                         px={3}
                         w={{ base: "100%", md: "300px" }}
-                        h="38px"
+                        maxW="100%"
+                        h="40px"
                         _focusWithin={{
                             borderColor: "#2160C4",
                             boxShadow: "0 0 0 1px #2160C4",
                         }}
                     >
                         <CiSearch size={19} color="#64748B" />
-
                         <Input
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            placeholder="Search by name, email or phone"
-                            // variant="unstyled"
+                            placeholder="Search patients..."
                             fontSize="13px"
                             color="#1E293B"
                             h="100%"
+                            minW="0"
+                            border="none"
+                            outline="none"
+                            _focusVisible={{ boxShadow: "none" }}
                             _placeholder={{ color: "#64748B" }}
                         />
                     </Flex>
                 </Flex>
 
-                {/* Responsive table */}
+                {/* MOBILE: Patient cards */}
+                <Box display={{ base: "block", md: "none" }} p={3} pt={0}>
+                    <Flex direction="column" gap={3}>
+                        {filteredPatients.map((patient) => (
+                            <Box
+                                key={patient.id}
+                                border="1px solid #E2E8F0"
+                                borderRadius="10px"
+                                p={3}
+                                minW="0"
+                            >
+                                <Text fontWeight="600" color="#1E293B" fontSize="15px">
+                                    {patient.name}
+                                </Text>
+
+                                <Text
+                                    fontSize="13px"
+                                    color="#64748B"
+                                    mt={2}
+                                    overflowWrap="anywhere"
+                                >
+                                    {patient.email}
+                                </Text>
+
+                                <Text fontSize="13px" color="#475569" mt={1}>
+                                    {patient.phone}
+                                </Text>
+
+                                <Text fontSize="13px" color="#475569" mt={1}>
+                                    {patient.address}
+                                </Text>
+
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    mt={3}
+                                    w="100%"
+                                >
+                                    View patient
+                                    <LuChevronRight />
+                                </Button>
+                            </Box>
+                        ))}
+
+                        {filteredPatients.length === 0 && (
+                            <Text textAlign="center" py={6} color="#64748B" fontSize="14px">
+                                No patients found.
+                            </Text>
+                        )}
+                    </Flex>
+                </Box>
+
+                {/* TABLET AND DESKTOP: Responsive table */}
                 <Box
+                    display={{ base: "none", md: "block" }}
                     w="100%"
                     overflowX="auto"
-                    bg="white"
-                    border="1px solid #E2E8F0"
-                    borderRadius="12px"
                 >
-                    <Table.Root size="sm" variant="line" minW="800px">
+                    <Table.Root
+                        size="sm"
+                        variant="line"
+                        minW={{ md: "760px", lg: "100%" }}
+                        tableLayout="auto"
+                    >
                         <Table.Header>
                             <Table.Row bg="#EDF1F7">
                                 <Table.ColumnHeader px={4} py={3}>
@@ -221,12 +263,20 @@ const Patients = () => {
                         <Table.Body>
                             {filteredPatients.map((patient) => (
                                 <Table.Row key={patient.id}>
-                                    <Table.Cell px={4} py={3}>{patient.name}</Table.Cell>
-                                    <Table.Cell px={4} py={3}>{patient.email}</Table.Cell>
-                                    <Table.Cell px={4} py={3}>{patient.phone}</Table.Cell>
-                                    <Table.Cell px={4} py={3}>{patient.address}</Table.Cell>
+                                    <Table.Cell px={4} py={3} whiteSpace="nowrap">
+                                        {patient.name}
+                                    </Table.Cell>
+                                    <Table.Cell px={4} py={3}>
+                                        {patient.email}
+                                    </Table.Cell>
+                                    <Table.Cell px={4} py={3} whiteSpace="nowrap">
+                                        {patient.phone}
+                                    </Table.Cell>
+                                    <Table.Cell px={4} py={3}>
+                                        {patient.address}
+                                    </Table.Cell>
                                     <Table.Cell px={4} py={3} textAlign="right">
-                                        <Button size="xs" variant="outline">
+                                        <Button size="xs" variant="outline" whiteSpace="nowrap">
                                             View patient
                                             <LuChevronRight />
                                         </Button>
