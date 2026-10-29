@@ -1,5 +1,6 @@
 import {
-  BrowserRouter,
+  // HashRouter,
+  HashRouter,
   Navigate,
   Route,
   Routes,
@@ -74,7 +75,7 @@ function NotFound() {
 
 function AppRoutes() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
         <Route path="/" element={<HomeRedirect />} />
 
@@ -108,7 +109,7 @@ function AppRoutes() {
 
         <Route path="*" element={<NotFound />} />
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
 
