@@ -13,23 +13,23 @@ const router = express.Router()
 
 
 
-interface Patient  {
-    id: string;
-    name: string;
-    email: string;
-    phone: string;
-    address: string;
-    role: string;
-    status: number;
-    created_at: Date;
+interface Patient {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  role: string;
+  status: number;
+  created_at: Date;
 }
 
-interface CountResult  {
-    total_items: number;
+interface CountResult {
+  total_items: number;
 }
 
- const frontendUrl =
-        process.env.FRONTEND_URL || process.env.FRONT_URL;
+const frontendUrl =
+  process.env.FRONTEND_URL || process.env.FRONT_URL;
 
 router.post("/add", middleware, async (req, res) => {
   try {
@@ -101,28 +101,28 @@ router.post("/add", middleware, async (req, res) => {
       ]);
     }
 
-     const cipherObj = {
-            id: generateId,
-            email: email,
-            timestamp: Date.now(),
-          };
-    
-          const encryptedToken = encrypt(cipherObj);
-     const resetLink =
-        `${frontendUrl}/#/create-password/${encryptedToken}`;
+    const cipherObj = {
+      id: generateId,
+      email: email,
+      timestamp: Date.now(),
+    };
 
-      const html = createPassword({
-            name: name,
-            link: resetLink,
-          });
-    
-          // Send reset email
-          await sendMail({
-            from: `"Diabetic-Diet-Assistant" <${process.env.EMAIL_USER}>`,
-            to: email,
-            subject: "Reset Your Password",
-            html,
-          });
+    const encryptedToken = encrypt(cipherObj);
+    const resetLink =
+      `${frontendUrl}/#/create-password/${encryptedToken}`;
+
+    const html = createPassword({
+      name: name,
+      link: resetLink,
+    });
+
+    // Send reset email
+    await sendMail({
+      from: `"Diabetic-Diet-Assistant" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "Reset Your Password",
+      html,
+    });
 
     return res.status(201).json({
       status: 1,
@@ -143,73 +143,73 @@ router.post("/add", middleware, async (req, res) => {
 
 
 interface AddUserRequest {
-    name: string;
-    email: string;
-    phone: string;
-    address: string;
-    doctor_id?: string;
-    role: "admin" | "doctor" | "patient";
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  doctor_id?: string;
+  role: "admin" | "doctor" | "patient";
 }
 
 interface ExistingUser {
-    id: string;
+  id: string;
 }
 
 router.post(
-    "/add",
-    middleware,
-    async (
-        req,
-        res
-    ): Promise<void> => {
+  "/add",
+  middleware,
+  async (
+    req,
+    res
+  ): Promise<void> => {
 
-        try {
-            const {
-                name,
-                email,
-                phone,
-                address,
-                doctor_id,
-                role,
-            } = req.body;
+    try {
+      const {
+        name,
+        email,
+        phone,
+        address,
+        doctor_id,
+        role,
+      } = req.body;
 
-            // Validate required fields
-            if (!name || !email || !phone || !address || !role) {
-                res.status(400).json({
-                    status: 0,
-                    message: "All required fields must be provided",
-                });
-                return;
-            }
+      // Validate required fields
+      if (!name || !email || !phone || !address || !role) {
+        res.status(400).json({
+          status: 0,
+          message: "All required fields must be provided",
+        });
+        return;
+      }
 
-            if (role === "patient" && !doctor_id) {
-                res.status(400).json({
-                    status: 0,
-                    message: "Doctor is required for patient",
-                });
-                return;
-            }
+      if (role === "patient" && !doctor_id) {
+        res.status(400).json({
+          status: 0,
+          message: "Doctor is required for patient",
+        });
+        return;
+      }
 
-            // Check existing email
-            const [checkUser] = await executeQuery(
-                "SELECT id FROM `user` WHERE email = ?",
-                [email]
-            );
+      // Check existing email
+      const [checkUser] = await executeQuery(
+        "SELECT id FROM user WHERE email = ?",
+        [email]
+      );
 
-            if (checkUser.length > 0) {
-                res.status(400).json({
-                    status: 0,
-                    message: "Email already exists",
-                });
-                return;
-            }
+      if (checkUser.length > 0) {
+        res.status(400).json({
+          status: 0,
+          message: "Email already exists",
+        });
+        return;
+      }
 
-            // Generate user ID
-            const generateId = generateUUID();
+      // Generate user ID
+      const generateId = generateUUID();
 
 
-            // Insert user
-            const userQuery = `
+      // Insert user
+      const userQuery = `
                 INSERT INTO user
                 (
                     id,
@@ -223,18 +223,18 @@ router.post(
                 VALUES (?, ?, ?, ?, ?, ?, NOW())
             `;
 
-            await executeQuery(userQuery, [
-                generateId,
-                name,
-                email,
-                phone,
-                address,
-                role,
-            ]);
+      await executeQuery(userQuery, [
+        generateId,
+        name,
+        email,
+        phone,
+        address,
+        role,
+      ]);
 
-            // Assign doctor to patient
-            if (role === "patient") {
-                const patientQuery = `
+      // Assign doctor to patient
+      if (role === "patient") {
+        const patientQuery = `
                     INSERT INTO patient
                     (
                         id,
@@ -244,56 +244,56 @@ router.post(
                     VALUES (?, ?, ?)
                 `;
 
-                await executeQuery(patientQuery, [
-                    generateUUID(),
-                    generateId,
-                    doctor_id,
-                ]);
-            }
+        await executeQuery(patientQuery, [
+          generateUUID(),
+          generateId,
+          doctor_id,
+        ]);
+      }
 
-            // Generate encrypted password creation link
-            const cipherObj = {
-                id: generateId,
-                email,
-                timestamp: Date.now(),
-            };
+      // Generate encrypted password creation link
+      const cipherObj = {
+        id: generateId,
+        email,
+        timestamp: Date.now(),
+      };
 
-            const encryptedToken = encrypt(cipherObj);
+      const encryptedToken = encrypt(cipherObj);
 
-            const resetLink =
-                `${frontendUrl}/#/create-password/${encryptedToken}`;
+      const resetLink =
+        `${frontendUrl}/#/create-password/${encryptedToken}`;
 
-            const html = createPassword({
-                name,
-                link: resetLink,
-            });
+      const html = createPassword({
+        name,
+        link: resetLink,
+      });
 
-            // Send password creation email
-            await sendMail({
-                from: `"Diabetic-Diet-Assistant" <${process.env.EMAIL_USER}>`,
-                to: email,
-                subject: "Create Your Password",
-                html,
-            });
+      // Send password creation email
+      await sendMail({
+        from: `"Diabetic-Diet-Assistant" <${process.env.EMAIL_USER}>`,
+        to: email,
+        subject: "Create Your Password",
+        html,
+      });
 
-           
-            res.status(201).json({
-                status: 1,
-                message: "User registered successfully",
-            });
 
-        } catch (error) {
-           
+      res.status(201).json({
+        status: 1,
+        message: "User registered successfully",
+      });
 
-            console.error("Add user error:", error);
+    } catch (error) {
 
-            res.status(500).json({
-                status: 0,
-                message: "Internal Server Error",
-            });
 
-        } 
+      console.error("Add user error:", error);
+
+      res.status(500).json({
+        status: 0,
+        message: "Internal Server Error",
+      });
+
     }
+  }
 );
 
 
@@ -342,41 +342,81 @@ router.post("/assign", middleware, async (req, res) => {
 });
 
 router.get("/profile", middleware, async (req, res) => {
-    try {
-        const {
-            id
-        } = req.query;
+  // console.log("mnbnmz")
+  try {
+    const {
+      id
+    } = req.query;
 
-        if (!id) {
-            return res.status(400).json({
-                status: 0,
-                message: "User ID is required"
-            });
-        }
-       
-        const data = await executeQuery(`select * from user where status = 0 and id=?`,[id]);
-
-        return res.status(200).json({
-            status: 1,
-            message: "User fetched successfully",
-            data,
-           
-        });
-
-    } catch (error) {
-
-
-        return res.status(500).json({
-            status: 0,
-            message: "Internal Server Error"
-        });
+    if (!id) {
+      return res.status(400).json({
+        status: 0,
+        message: "User ID is required"
+      });
     }
+    // console.log(id)
+
+    const data = await executeQuery(
+      `
+                SELECT
+                    u.id,
+                    u.name,
+                    u.email,
+                    u.phone,
+                    u.address,
+                    u.role,
+                    p.doctor_id,
+                    d.name AS doctor_name,
+                    d.email AS doctor_email,
+                    d.phone AS doctor_phone
+                FROM user u
+
+                LEFT JOIN patient p
+                    ON u.id = p.patient_id
+
+             
+
+                LEFT JOIN user d
+                ON d.id = p.doctor_id
+                AND d.role = 'doctor'
+                AND d.status = 0
+
+                WHERE
+                    u.status = 0
+                    AND u.id = ?
+                    
+                `,
+      [id]
+    );
+
+    if (data.length === 0) {
+      res.status(404).json({
+        status: 0,
+        message: "User profile not found",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      status: 1,
+      message: "Profile fetched successfully",
+      data: data[0],
+    });
+
+  } catch (error) {
+
+
+    return res.status(500).json({
+      status: 0,
+      message: "Internal Server Error"
+    });
+  }
 });
 
 router.put("/edit-profile", middleware, async (req, res) => {
   try {
-    
-    
+
+
 
     const {
       name,
@@ -458,28 +498,26 @@ router.put("/edit-profile", middleware, async (req, res) => {
 });
 
 
-
-
 router.get(
-    "/get-all-patient",
-    middleware,
-    async (req, res): Promise<void> => {
-        try {
-            const {
-                page = "1",
-                limit = "10",
-                search = "",
-            } = req.query;
+  "/get-all-patient",
+  middleware,
+  async (req, res): Promise<void> => {
+    try {
+      const {
+        page = "1",
+        limit = "10",
+        search = "",
+      } = req.query;
 
-            const parsedPage = Math.max(Number(page) || 1, 1);
-            const parsedLimit = Math.max(Number(limit) || 10, 0);
+      const parsedPage = Math.max(Number(page) || 1, 1);
+      const parsedLimit = Math.max(Number(limit) || 10, 0);
 
-            const offset = (parsedPage - 1) * parsedLimit;
+      const offset = (parsedPage - 1) * parsedLimit;
 
-            const searchQuery = `%${String(search).trim()}%`;
+      const searchQuery = `%${String(search).trim()}%`;
 
-            // WHERE CLAUSE
-            const whereClause = `
+      // WHERE CLAUSE
+      const whereClause = `
                 u.status = 0
                 AND u.role = 'patient'
                 AND (
@@ -489,14 +527,14 @@ router.get(
                 )
             `;
 
-            const queryParams: (string | number)[] = [
-                searchQuery,
-                searchQuery,
-                searchQuery,
-            ];
+      const queryParams: (string | number)[] = [
+        searchQuery,
+        searchQuery,
+        searchQuery,
+      ];
 
-            // MAIN QUERY
-            let query = `
+      // MAIN QUERY
+      let query = `
                 SELECT
                     u.id,
                     u.name,
@@ -511,69 +549,69 @@ router.get(
                 ORDER BY u.created_at DESC
             `;
 
-            // PAGINATION
-            if (parsedLimit !== 0) {
-                query += `
+      // PAGINATION
+      if (parsedLimit !== 0) {
+        query += `
                     LIMIT ?
                     OFFSET ?
                 `;
 
-                queryParams.push(parsedLimit, offset);
-            }
+        queryParams.push(parsedLimit, offset);
+      }
 
-            // GET PATIENTS
-            const data = await executeQuery(
-                query,
-                queryParams
-            );
+      // GET PATIENTS
+      const data = await executeQuery(
+        query,
+        queryParams
+      );
 
-            // TOTAL COUNT
-            const totalItemsResult = await executeQuery(
-                `
+      // TOTAL COUNT
+      const totalItemsResult = await executeQuery(
+        `
                     SELECT COUNT(*) AS total_items
                     FROM user u
                     WHERE ${whereClause}
                 `,
-                [
-                    searchQuery,
-                    searchQuery,
-                    searchQuery,
-                ]
-            );
+        [
+          searchQuery,
+          searchQuery,
+          searchQuery,
+        ]
+      );
 
-            const totalItems = Number(
-                totalItemsResult[0]?.total_items || 0
-            );
+      const totalItems = Number(
+        totalItemsResult[0]?.total_items || 0
+      );
 
-            // NEXT PAGE
-            const isNext = totalItems > offset + data.length;
+      // NEXT PAGE
+      const isNext = totalItems > offset + data.length;
 
-            // RESPONSE
-            res.status(200).json({
-                status: 1,
-                message: "Patient list fetched successfully",
-                data,
-                pagination: {
-                    currentPage: parsedPage,
-                    limit: parsedLimit,
-                    totalItems,
-                    totalPages:
-                        parsedLimit === 0
-                            ? 1
-                            : Math.ceil(totalItems / parsedLimit),
-                    isNext,
-                },
-            });
+      // RESPONSE
+      res.status(200).json({
+        status: 1,
+        message: "Patient list fetched successfully",
+        data,
+        pagination: {
+          currentPage: parsedPage,
+          limit: parsedLimit,
+          totalItems,
+          totalPages:
+            parsedLimit === 0
+              ? 1
+              : Math.ceil(totalItems / parsedLimit),
+          isNext,
+        },
+      });
 
-        } catch (error) {
-            console.error("Get all patients error:", error);
+    } catch (error) {
+      console.error("Get all patients error:", error);
 
-            res.status(500).json({
-                status: 0,
-                message: "Internal server error",
-            });
-        }
+      res.status(500).json({
+        status: 0,
+        message: "Internal server error",
+      });
     }
+  }
 );
 
 

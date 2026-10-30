@@ -103,7 +103,7 @@ router.post("/register", async (req, res) => {
 
     // check existing email
     const checkUser = await executeQuery(
-      "SELECT * FROM `user` WHERE email = ?",
+      "SELECT * FROM user WHERE email = ?",
       [email]
     );
     // console.log(checkUser[0])
