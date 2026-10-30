@@ -1,4 +1,3 @@
-
 import {
     Box,
     Button,
@@ -11,9 +10,12 @@ import { useMemo, useState } from "react";
 import { CiSearch } from "react-icons/ci";
 import { LuPlus, LuChevronRight } from "react-icons/lu";
 import AddPatient from "../../../../src/components/dialoag/admin/Patient/Add_Patient";
+import CustomTable from "../../../../src/components/reusable/CustomTable";
+import { useNavigate } from "react-router-dom";
 
 const Patients = () => {
     const [search, setSearch] = useState("");
+    const navigate = useNavigate();
 
     const patients = [
         {
@@ -52,7 +54,9 @@ const Patients = () => {
             address: "Kakkanad, Kochi",
         },
     ];
+
     const [isAddPatientOpen, setIsAddPatientOpen] = useState(false);
+
     const filteredPatients = useMemo(() => {
         const value = search.toLowerCase().trim();
 
@@ -66,15 +70,13 @@ const Patients = () => {
         );
     }, [search]);
 
-    // const handleAddPatient = () => {
-    //     // Connect your Add Patient form or dialog here.
-    //     console.log("Add patient clicked");
-    // };
-
-    // const handleViewPatient = (patient) => {
-    //     // Connect your patient details route here.
-    //     console.log("Selected patient:", patient);
-    // };
+    const headers = [
+        { name: "PATIENT NAME" },
+        { name: "EMAIL" },
+        { name: "PHONE" },
+        { name: "ADDRESS" },
+        { name: "ACTION" },
+    ];
 
     return (
         <Flex
@@ -98,7 +100,11 @@ const Patients = () => {
                 direction={{ base: "column", sm: "row" }}
                 gap={3}
             >
-                <Text fontSize={{ base: "22px", md: "24px" }} fontWeight="600" color="#1E293B">
+                <Text
+                    fontSize={{ base: "22px", md: "24px" }}
+                    fontWeight="600"
+                    color="#1E293B"
+                >
                     Patients
                 </Text>
 
@@ -140,6 +146,7 @@ const Patients = () => {
                         <Text fontSize="16px" fontWeight="600" color="#1E293B">
                             Your patients
                         </Text>
+
                         <Text fontSize="13px" color="#64748B" mt={1}>
                             {filteredPatients.length} patients
                         </Text>
@@ -160,6 +167,7 @@ const Patients = () => {
                         }}
                     >
                         <CiSearch size={19} color="#64748B" />
+
                         <Input
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
@@ -187,7 +195,11 @@ const Patients = () => {
                                 p={3}
                                 minW="0"
                             >
-                                <Text fontWeight="600" color="#1E293B" fontSize="15px">
+                                <Text
+                                    fontWeight="600"
+                                    color="#1E293B"
+                                    fontSize="15px"
+                                >
                                     {patient.name}
                                 </Text>
 
@@ -209,10 +221,11 @@ const Patients = () => {
                                 </Text>
 
                                 <Button
-                                    size="sm"
+                                    size="xs"
                                     variant="outline"
-                                    mt={3}
-                                    w="100%"
+                                    onClick={() =>
+                                        navigate("/admin/patients/ravi-kulkarni")
+                                    }
                                 >
                                     View patient
                                     <LuChevronRight />
@@ -221,62 +234,56 @@ const Patients = () => {
                         ))}
 
                         {filteredPatients.length === 0 && (
-                            <Text textAlign="center" py={6} color="#64748B" fontSize="14px">
+                            <Text
+                                textAlign="center"
+                                py={6}
+                                color="#64748B"
+                                fontSize="14px"
+                            >
                                 No patients found.
                             </Text>
                         )}
                     </Flex>
                 </Box>
 
-                {/* TABLET AND DESKTOP: Responsive table */}
+                {/* TABLET AND DESKTOP: CustomTable */}
                 <Box
                     display={{ base: "none", md: "block" }}
                     w="100%"
                     overflowX="auto"
                 >
-                    <Table.Root
-                        size="sm"
-                        variant="line"
-                        minW={{ md: "760px", lg: "100%" }}
-                        tableLayout="auto"
+                    <CustomTable
+                        headers={headers}
+                        borderradius="0"
                     >
-                        <Table.Header>
-                            <Table.Row bg="#EDF1F7">
-                                <Table.ColumnHeader px={4} py={3}>
-                                    PATIENT NAME
-                                </Table.ColumnHeader>
-                                <Table.ColumnHeader px={4} py={3}>
-                                    EMAIL
-                                </Table.ColumnHeader>
-                                <Table.ColumnHeader px={4} py={3}>
-                                    PHONE
-                                </Table.ColumnHeader>
-                                <Table.ColumnHeader px={4} py={3}>
-                                    ADDRESS
-                                </Table.ColumnHeader>
-                                <Table.ColumnHeader px={4} py={3} textAlign="right">
-                                    ACTION
-                                </Table.ColumnHeader>
-                            </Table.Row>
-                        </Table.Header>
-
                         <Table.Body>
                             {filteredPatients.map((patient) => (
                                 <Table.Row key={patient.id}>
                                     <Table.Cell px={4} py={3} whiteSpace="nowrap">
                                         {patient.name}
                                     </Table.Cell>
+
                                     <Table.Cell px={4} py={3}>
                                         {patient.email}
                                     </Table.Cell>
+
                                     <Table.Cell px={4} py={3} whiteSpace="nowrap">
                                         {patient.phone}
                                     </Table.Cell>
+
                                     <Table.Cell px={4} py={3}>
                                         {patient.address}
                                     </Table.Cell>
+
                                     <Table.Cell px={4} py={3} textAlign="right">
-                                        <Button size="xs" variant="outline" whiteSpace="nowrap">
+                                        <Button
+                                            size="xs"
+                                            variant="outline"
+                                            whiteSpace="nowrap"
+                                            onClick={() =>
+                                                navigate("/admin/patients/ravi-kulkarni")
+                                            }
+                                        >
                                             View patient
                                             <LuChevronRight />
                                         </Button>
@@ -286,13 +293,17 @@ const Patients = () => {
 
                             {filteredPatients.length === 0 && (
                                 <Table.Row>
-                                    <Table.Cell colSpan={5} textAlign="center" py={8}>
+                                    <Table.Cell
+                                        colSpan={5}
+                                        textAlign="center"
+                                        py={8}
+                                    >
                                         No patients found.
                                     </Table.Cell>
                                 </Table.Row>
                             )}
                         </Table.Body>
-                    </Table.Root>
+                    </CustomTable>
                 </Box>
             </Box>
         </Flex>

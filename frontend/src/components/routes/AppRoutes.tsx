@@ -13,11 +13,12 @@ import Register from "../pages/auth/Register";
 import AdminDashboard from "../pages/admin/AdminDashboard";
 import DoctorDashboard from "../pages/doctor/DoctorDashboard";
 import PatientDashboard from "../pages/patient/PatientDashboard";
-
+import PatientDetails from "../pages/patient/Patient_Details/PatientDetails";
 import AdminLayout from "../layouts/AdminLayout";
 import DoctorLayout from "../layouts/DoctorLayout";
 import PatientLayout from "../layouts/PatientLayout";
 import Patients from "../pages/patient/Patients";
+
 import ProfileSettings from "../../components/pages/settings/ProfileSettings";
 
 
@@ -90,6 +91,11 @@ function AppRoutes() {
             <Route index element={<AdminDashboard />} />
             <Route path="patients" element={<Patients />} />
             <Route path="settings" element={<ProfileSettings />} />
+            <Route
+              path="/admin/patients/ravi-kulkarni"
+              element={<PatientDetails />}
+            />
+
           </Route>
         </Route>
 
@@ -104,6 +110,7 @@ function AppRoutes() {
         <Route element={<ProtectedRoute allowedRoles={["patient"]} />}>
           <Route path="/patient" element={<PatientLayout />}>
             <Route index element={<PatientDashboard />} />
+
           </Route>
         </Route>
 
