@@ -1,5 +1,4 @@
 import express from "express";
-import connection from "../config/db.js";
 import { redisClient } from "../config/redis.js";
 import { executeQuery } from "../controller/helper.js";
 import bcrypt from "bcrypt";
@@ -55,9 +54,10 @@ router.post("/user_register", async (req, res) => {
       phone,
       password,
       address,
-      role
+      role,
+      created_at
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, now())
     `;
 
     const result = await executeQuery(query, [
@@ -85,6 +85,84 @@ router.post("/user_register", async (req, res) => {
     });
   }
 });
+
+router.post("/register", async (req, res) => {
+  try {
+    const {
+      name,
+      email,
+      phone,
+      password,
+      address,
+      doctor_id,
+      role,
+    } = req.body;
+
+    // validation
+
+
+    // check existing email
+    const checkUser = await executeQuery(
+      "SELECT * FROM `user` WHERE email = ?",
+      [email]
+    );
+    // console.log(checkUser[0])
+
+    if (checkUser.length > 0) {
+      return res.status(400).json({
+        status: 0,
+        message: "Email already exists",
+      });
+    }
+
+    // hash password
+    const secPass = await bcrypt.hash(password, 10);
+
+    const generateId = generateUUID();
+
+    // insert user
+    const query = `
+      INSERT INTO user
+      (
+      id,
+      name, 
+      email,
+      phone,
+      password,
+      address,
+      doctor_id,
+      role,
+      created_at
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, now())
+    `;
+
+    const result = await executeQuery(query, [
+      generateId,
+      name,
+      email,
+      phone,
+      secPass,
+      address,
+      doctor_id,
+      role,
+    ]);
+
+    return res.status(201).json({
+      status: 1,
+      message: "User registered successfully",
+    });
+
+  } catch (error) {
+    console.log(error);
+
+    return res.status(500).json({
+      status: 0,
+      message: "Internal Server Error",
+    });
+  }
+});
+
 
 router.post("/login", async (req, res) => {
   try {
@@ -168,8 +246,6 @@ router.post("/login", async (req, res) => {
   }
 });
 
-
-
 router.post("/set-password", async (req, res) => {
   try {
     const { token, password, confirm_password } = req.body;
@@ -247,11 +323,6 @@ router.post("/set-password", async (req, res) => {
     });
   }
 });
-
-
-
-
-
 
 router.post(
   "/forgot",
@@ -335,7 +406,6 @@ router.post(
   }
 );
 
-
 router.post("/reset-password", async (req, res) => {
   try {
     const { token, password } = req.body;
@@ -365,8 +435,6 @@ router.post("/reset-password", async (req, res) => {
     return res.status(500).json({ status: 1, error: "Internal server error." });
   }
 });
-
-
 
 router.post("/logout", middleware, async (req, res) => {
 
@@ -407,6 +475,8 @@ router.post("/logout", middleware, async (req, res) => {
     });
   }
 });
+
+
 
 
 
