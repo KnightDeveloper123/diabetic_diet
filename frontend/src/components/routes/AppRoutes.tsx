@@ -15,14 +15,20 @@ import DoctorDashboard from "../pages/doctor/DoctorDashboard";
 import PatientDashboard from "../pages/patient/PatientDashboard";
 import PatientRegister from "../pages/auth/PatientRegister";
 import PatientDetails from "../pages/patient/Patient_Details/PatientDetails";
+
 import AdminLayout from "../layouts/AdminLayout";
 import DoctorLayout from "../layouts/DoctorLayout";
 import PatientLayout from "../layouts/PatientLayout";
 import Patients from "../pages/patient/Patients";
+import UploadMeal from "../pages/patient/Analyze_Meal/UploadMeal";
+import Meal_Details from "../../components/pages/patient/Analyze_Meal/MealDetails";
+import MealAnalysis from "../../components/pages/patient/Analyze_Meal/MealAnalysis";
+import Review_Results from "../../components/pages/patient/Analyze_Meal/ReviewResult";
+
+
+// import AnalyzeMeal from "../pages/patient/Analyze_Meal/AnalyzeMeal";
 
 import ProfileSettings from "../../components/pages/settings/ProfileSettings";
-
-
 import ProtectedRoute from "./ProtectedRoute";
 import type { UserRole } from "../types/auth.types";
 import { Box, Heading, Text } from "@chakra-ui/react";
@@ -93,7 +99,6 @@ function AppRoutes() {
             <Route path="patients" element={<Patients />} />
             <Route path="settings" element={<ProfileSettings />} />
             <Route path="/admin/patients/ravi-kulkarni" element={<PatientDetails />} />
-
           </Route>
         </Route>
 
@@ -109,6 +114,12 @@ function AppRoutes() {
           <Route path="/patient" element={<PatientLayout />}>
             <Route index element={<PatientDashboard />} />
             <Route path="/patient-register" element={<PatientRegister />} />
+            <Route path="/patient/analyze-meal" element={<UploadMeal />} />
+            <Route path="meal-details" element={<Meal_Details />} />
+            <Route path="analysis" element={<MealAnalysis />} />
+            <Route path="review-results" element={<Review_Results />} />
+
+            {/* <Route path="analyze" element={<AnalyzeMeal />} /> */}
           </Route>
         </Route>
 

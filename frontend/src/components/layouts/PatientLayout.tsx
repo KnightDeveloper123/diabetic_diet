@@ -1,6 +1,7 @@
 import { Box, Flex, Heading, Button } from "@chakra-ui/react";
-import { Link, Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import Sidebar from "../../../src/menu/Sidebar";
 
 function PatientLayout() {
   const { user, logout } = useAuth();
@@ -13,20 +14,7 @@ function PatientLayout() {
 
   return (
     <Flex minH="100vh" bg="gray.50">
-      <Box
-        w="240px"
-        bg="white"
-        p={5}
-        borderRightWidth="1px"
-      >
-        <Heading size="md" mb={6}>
-          Patient Portal
-        </Heading>
-
-        <Flex direction="column" gap={4}>
-          <Link to="/patient">Dashboard</Link>
-        </Flex>
-      </Box>
+      <Sidebar />
 
       <Box flex="1" minW="0">
         <Flex
@@ -36,10 +24,13 @@ function PatientLayout() {
           align="center"
           borderBottomWidth="1px"
         >
-          <Heading size="md">Diabetic Diet Assistant</Heading>
+          <Heading size="md">
+            Diabetic Diet Assistant
+          </Heading>
 
           <Flex align="center" gap={3}>
             <Box>{user?.name}</Box>
+
             <Button onClick={handleLogout} size="sm">
               Logout
             </Button>

@@ -64,9 +64,9 @@ function Login() {
         token: "dummy-jwt-token",
         user: {
           id: "1",
-          name: "Priyanka",
-          email: "priyanka17@mailinator.com",
-          role: "admin",
+          name: "vamika",
+          email: "vamika1@mailinator.com",
+          role: "patient",
         },
       };
 
