@@ -93,7 +93,7 @@ function AppRoutes() {
             <Route path="patients" element={<Patients />} />
             <Route path="settings" element={<ProfileSettings />} />
             <Route path="/admin/patients/ravi-kulkarni" element={<PatientDetails />} />
-            <Route path="/patient-register" element={<PatientRegister />} />
+
           </Route>
         </Route>
 
@@ -108,7 +108,7 @@ function AppRoutes() {
         <Route element={<ProtectedRoute allowedRoles={["patient"]} />}>
           <Route path="/patient" element={<PatientLayout />}>
             <Route index element={<PatientDashboard />} />
-
+            <Route path="/patient-register" element={<PatientRegister />} />
           </Route>
         </Route>
 
