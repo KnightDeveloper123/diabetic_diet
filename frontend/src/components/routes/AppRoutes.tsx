@@ -13,6 +13,7 @@ import Register from "../pages/auth/Register";
 import AdminDashboard from "../pages/admin/AdminDashboard";
 import DoctorDashboard from "../pages/doctor/DoctorDashboard";
 import PatientDashboard from "../pages/patient/PatientDashboard";
+import PatientRegister from "../pages/auth/PatientRegister";
 import PatientDetails from "../pages/patient/Patient_Details/PatientDetails";
 import AdminLayout from "../layouts/AdminLayout";
 import DoctorLayout from "../layouts/DoctorLayout";
@@ -91,11 +92,8 @@ function AppRoutes() {
             <Route index element={<AdminDashboard />} />
             <Route path="patients" element={<Patients />} />
             <Route path="settings" element={<ProfileSettings />} />
-            <Route
-              path="/admin/patients/ravi-kulkarni"
-              element={<PatientDetails />}
-            />
-
+            <Route path="/admin/patients/ravi-kulkarni" element={<PatientDetails />} />
+            <Route path="/patient-register" element={<PatientRegister />} />
           </Route>
         </Route>
 
