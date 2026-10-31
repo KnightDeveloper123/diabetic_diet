@@ -614,6 +614,122 @@ router.get(
   }
 );
 
+router.get(
+  "/get-all-doctor",
+  middleware,
+  async (req, res): Promise<void> => {
+    try {
+      const {
+        page = "1",
+        limit = "10",
+        search = "",
+      } = req.query;
+
+      const parsedPage = Math.max(Number(page) || 1, 1);
+      const parsedLimit = Math.max(Number(limit) || 10, 0);
+
+      const offset = (parsedPage - 1) * parsedLimit;
+
+      const searchQuery = `%${String(search).trim()}%`;
+
+      // WHERE CLAUSE
+      const whereClause = `
+                u.status = 0
+                AND u.role = 'doctor'
+                AND (
+                    u.name LIKE ?
+                    OR u.email LIKE ?
+                    OR u.phone LIKE ?
+                )
+            `;
+
+      const queryParams: (string | number)[] = [
+        searchQuery,
+        searchQuery,
+        searchQuery,
+      ];
+
+      // MAIN QUERY
+      let query = `
+                SELECT
+                    u.id,
+                    u.name,
+                    u.email,
+                    u.phone,
+                    u.address,
+                    u.role,
+                    u.status,
+                    u.created_at
+                FROM user u
+                WHERE ${whereClause}
+                ORDER BY u.created_at DESC
+            `;
+
+      // PAGINATION
+      if (parsedLimit !== 0) {
+        query += `
+                    LIMIT ?
+                    OFFSET ?
+                `;
+
+        queryParams.push(parsedLimit, offset);
+      }
+
+      // GET PATIENTS
+      const data = await executeQuery(
+        query,
+        queryParams
+      );
+
+      // TOTAL COUNT
+      const totalItemsResult = await executeQuery(
+        `
+                    SELECT COUNT(*) AS total_items
+                    FROM user u
+                    WHERE ${whereClause}
+                `,
+        [
+          searchQuery,
+          searchQuery,
+          searchQuery,
+        ]
+      );
+
+      const totalItems = Number(
+        totalItemsResult[0]?.total_items || 0
+      );
+
+      // NEXT PAGE
+      const isNext = totalItems > offset + data.length;
+
+      // RESPONSE
+      res.status(200).json({
+        status: 1,
+        message: "Doctor list fetched successfully",
+        data,
+        pagination: {
+          currentPage: parsedPage,
+          limit: parsedLimit,
+          totalItems,
+          totalPages:
+            parsedLimit === 0
+              ? 1
+              : Math.ceil(totalItems / parsedLimit),
+          isNext,
+        },
+      });
+
+    } catch (error) {
+      console.error("Get all patients error:", error);
+
+      res.status(500).json({
+        status: 0,
+        message: "Internal server error",
+      });
+    }
+  }
+);
+
 
 
 

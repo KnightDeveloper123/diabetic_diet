@@ -5,6 +5,7 @@ import helmet from "helmet";
 
 import authRoutes from "./routes/auth.routes.js";
 import healthRoutes from "./routes/patient.routes.js";
+import calculationRoutes from "./routes/calculation.routes.js";
 
 const app = express();
 
@@ -29,6 +30,7 @@ app.get("/", (_req: Request, res: Response) => {
 
 app.use("/api/health", healthRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/calculation", calculationRoutes);
 
 app.use((_req: Request, res: Response) => {
   res.status(404).json({
