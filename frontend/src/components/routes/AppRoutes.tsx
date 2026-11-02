@@ -32,7 +32,7 @@ import ProfileSettings from "../../components/pages/settings/ProfileSettings";
 import ProtectedRoute from "./ProtectedRoute";
 import type { UserRole } from "../types/auth.types";
 import { Box, Heading, Text } from "@chakra-ui/react";
-import Reports from "../pages/patient/Reports";
+import Reports from "../pages/patient/reports/Reports";
 
 function getDashboardPath(role: UserRole) {
   switch (role) {

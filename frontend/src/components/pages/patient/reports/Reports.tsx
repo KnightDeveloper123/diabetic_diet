@@ -1,6 +1,8 @@
 
 import { Badge, Box, Flex, Text } from "@chakra-ui/react";
 
+import WeeklyMealChart from "./WeeklyMealChart";
+
 const weeklyData = [
     { day: "Mon", date: "19 Oct", value: 168 },
     { day: "Tue", date: "20 Oct", value: 182 },
@@ -47,12 +49,14 @@ const threshold = 200;
 const Reports = () => {
     const mealsRecorded = 21;
     const dailyAverage = 182;
+
     const daysAboveThreshold = weeklyData.filter(
         (item) => item.value > threshold
     ).length;
 
     return (
         <Box minH="100vh">
+
             {/* PAGE HEADER */}
             <Box mb={5}>
                 <Text
@@ -80,6 +84,7 @@ const Reports = () => {
                 gap={3}
                 mb={4}
             >
+
                 {/* MEALS RECORDED */}
                 <Box
                     bg="white"
@@ -127,30 +132,30 @@ const Reports = () => {
                         >
                             {dailyAverage}
                         </Text>
+
                         <Text fontSize="11px" color="#64748B">
                             g
                         </Text>
                     </Flex>
 
-                    <Box
-                        display="inline-block"
-                        bg="#E5F4EC"
-                        color="#16834B"
-                        px={1.5}
-                        py={0.5}
-                        borderRadius="20px"
+                    <Badge
+                        colorPalette="green"
+                        variant="subtle"
+                        borderRadius="full"
+                        px={2}
+                        py={1}
                         fontSize="9px"
                         mt={1}
                     >
                         ✓ Within threshold
-                    </Box>
+                    </Badge>
 
                     <Text fontSize="10px" color="#64748B" mt={1}>
                         Threshold 200 g
                     </Text>
                 </Box>
 
-                {/* ABOVE THRESHOLD */}
+                {/* DAYS ABOVE THRESHOLD */}
                 <Box
                     bg="white"
                     border="1px solid #DC6B6B"
@@ -177,225 +182,25 @@ const Reports = () => {
                         </Text>
                     </Flex>
 
-                    <Box
-                        display="inline-block"
-                        bg="#FDECEC"
-                        color="#B42318"
-                        px={1.5}
-                        py={0.5}
-                        borderRadius="20px"
+                    <Badge
+                        colorPalette="red"
+                        variant="subtle"
+                        borderRadius="full"
+                        px={2}
+                        py={1}
                         fontSize="9px"
                         mt={1}
                     >
                         ⚠ Above threshold
-                    </Box>
+                    </Badge>
                 </Box>
             </Box>
 
-            {/* WEEKLY MEAL GRAPH */}
-            <Box
-                bg="white"
-                border="1px solid #E2E8F0"
-                borderRadius="9px"
-                p={{ base: 3, md: 4 }}
-                mb={4}
-                boxShadow="0 1px 2px rgba(0,0,0,0.03)"
-            >
-                <Flex
-                    justify="space-between"
-                    align={{ base: "flex-start", sm: "center" }}
-                    gap={2}
-                    mb={4}
-                >
-                    <Box>
-                        <Text
-                            fontSize="13px"
-                            fontWeight="700"
-                            color="#1E293B"
-                        >
-                            Weekly meal graph
-                        </Text>
-
-                        <Text fontSize="10px" color="#64748B" mt={1}>
-                            19–25 Oct 2026 · Carbohydrates per day (g)
-                        </Text>
-                    </Box>
-
-                    <Box
-                        bg="#EEF1F6"
-                        color="#475569"
-                        px={2}
-                        py={1}
-                        borderRadius="20px"
-                        fontSize="9px"
-                        whiteSpace="nowrap"
-                    >
-                        ⓘ Illustrative data
-                    </Box>
-                </Flex>
-
-                {/* CHART */}
-                <Box
-                    display="flex"
-                    h="155px"
-                    mt={3}
-                    mb={2}
-                    overflow="hidden"
-                >
-                    {/* Y AXIS */}
-                    <Flex
-                        direction="column"
-                        justify="space-between"
-                        align="flex-end"
-                        pr={2}
-                        pb="23px"
-                        w="27px"
-                        flexShrink={0}
-                    >
-                        {[300, 225, 150, 75, 0].map((value) => (
-                            <Text
-                                key={value}
-                                fontSize="9px"
-                                color="#475569"
-                                lineHeight="1"
-                            >
-                                {value}
-                            </Text>
-                        ))}
-                    </Flex>
-
-                    {/* CHART AREA */}
-                    <Box flex="1" position="relative" pb="23px">
-                        {/* GRID LINES */}
-                        {[0, 25, 50, 75, 100].map((position) => (
-                            <Box
-                                key={position}
-                                position="absolute"
-                                left={0}
-                                right={0}
-                                top={`${position}%`}
-                                borderTop="1px solid #E8EDF3"
-                            />
-                        ))}
-
-                        {/* THRESHOLD LINE */}
-                        <Box
-                            position="absolute"
-                            top={`${(1 - threshold / 300) * 100}%`}
-                            left={0}
-                            right={0}
-                            borderTop="1.5px dashed #DC2626"
-                            zIndex={2}
-                        />
-
-                        {/* BARS */}
-                        <Flex
-                            position="absolute"
-                            inset={0}
-                            align="stretch"
-                            justify="space-around"
-                            zIndex={3}
-                        >
-                            {weeklyData.map((item) => {
-                                const isAbove = item.value > threshold;
-
-                                return (
-                                    <Flex
-                                        key={item.day}
-                                        direction="column"
-                                        align="center"
-                                        justify="flex-end"
-                                        flex="1"
-                                        position="relative"
-                                        minW={0}
-                                    >
-                                        {/* VALUE LABEL */}
-                                        <Text
-                                            position="absolute"
-                                            bottom={`${(item.value / 300) * 100}%`}
-                                            transform="translateY(-5px)"
-                                            fontSize="9px"
-                                            fontWeight="700"
-                                            color={isAbove ? "#B42318" : "#334155"}
-                                            whiteSpace="nowrap"
-                                        >
-                                            {isAbove ? "▲ " : ""}
-                                            {item.value}
-                                        </Text>
-
-                                        {/* BAR */}
-                                        <Box
-                                            w={{ base: "55%", sm: "45%" }}
-                                            maxW="26px"
-                                            h={`${(item.value / 300) * 100}%`}
-                                            bg={isAbove ? "#B42318" : "#2463B8"}
-                                            borderRadius="3px 3px 0 0"
-                                        />
-                                    </Flex>
-                                );
-                            })}
-                        </Flex>
-
-                        {/* X AXIS LABELS */}
-                        <Flex
-                            position="absolute"
-                            bottom={0}
-                            left={0}
-                            right={0}
-                            justify="space-around"
-                        >
-                            {weeklyData.map((item) => (
-                                <Flex
-                                    key={item.day}
-                                    flex="1"
-                                    direction="column"
-                                    align="center"
-                                >
-                                    <Text
-                                        fontSize="9px"
-                                        fontWeight="600"
-                                        color="#475569"
-                                    >
-                                        {item.day}
-                                    </Text>
-                                    <Text fontSize="9px" color="#64748B">
-                                        {item.date}
-                                    </Text>
-                                </Flex>
-                            ))}
-                        </Flex>
-                    </Box>
-                </Box>
-
-                {/* CHART LEGEND */}
-                <Flex
-                    wrap="wrap"
-                    gap={{ base: 2, md: 4 }}
-                    mt={4}
-                    align="center"
-                >
-                    <Flex align="center" gap={1}>
-                        <Box w="8px" h="8px" bg="#2463B8" borderRadius="2px" />
-                        <Text fontSize="9px" color="#475569">
-                            Within threshold
-                        </Text>
-                    </Flex>
-
-                    <Flex align="center" gap={1}>
-                        <Box w="8px" h="8px" bg="#B42318" borderRadius="2px" />
-                        <Text fontSize="9px" color="#475569">
-                            Above threshold
-                        </Text>
-                    </Flex>
-
-                    <Flex align="center" gap={1}>
-                        <Box w="12px" borderTop="1.5px dashed #DC2626" />
-                        <Text fontSize="9px" color="#475569">
-                            Threshold (200 g)
-                        </Text>
-                    </Flex>
-                </Flex>
-            </Box>
+            {/* WEEKLY MEAL CHART COMPONENT */}
+            <WeeklyMealChart
+                data={weeklyData}
+                threshold={threshold}
+            />
 
             {/* AI ANALYSIS TABLE */}
             <Box
@@ -405,6 +210,7 @@ const Reports = () => {
                 overflow="hidden"
                 boxShadow="0 1px 2px rgba(0,0,0,0.03)"
             >
+                {/* TABLE HEADER */}
                 <Box px={4} py={3}>
                     <Text
                         fontSize="13px"
@@ -419,6 +225,7 @@ const Reports = () => {
                     </Text>
                 </Box>
 
+                {/* TABLE */}
                 <Box overflowX="auto">
                     <Box
                         as="table"
@@ -455,7 +262,7 @@ const Reports = () => {
                         <Box as="tbody">
                             {meals.map((item, index) => {
                                 const isAbove =
-                                    item.carbs > 60;
+                                    item.status === "Above threshold";
 
                                 return (
                                     <Box
@@ -465,6 +272,7 @@ const Reports = () => {
                                         _last={{ borderBottom: "none" }}
                                         _hover={{ bg: "#F8FAFC" }}
                                     >
+                                        {/* DATE */}
                                         <Box
                                             as="td"
                                             px={1.5}
@@ -476,6 +284,7 @@ const Reports = () => {
                                             {item.date}
                                         </Box>
 
+                                        {/* MEAL */}
                                         <Box
                                             as="td"
                                             px={1.5}
@@ -486,21 +295,23 @@ const Reports = () => {
                                             {item.meal}
                                         </Box>
 
+                                        {/* DETECTED ITEMS */}
                                         <Box
                                             as="td"
                                             px={1.5}
                                             py={2}
-                                            fontSize="10px"
+                                            fontSize="12px"
                                             color="#334155"
                                         >
                                             {item.items}
                                         </Box>
 
+                                        {/* CARBOHYDRATES */}
                                         <Box
                                             as="td"
                                             px={1.5}
                                             py={2}
-                                            fontSize="10px"
+                                            fontSize="12px"
                                             color="#334155"
                                             whiteSpace="nowrap"
                                             textAlign="center"
@@ -508,6 +319,7 @@ const Reports = () => {
                                             {item.carbs} g
                                         </Box>
 
+                                        {/* STATUS BADGE */}
                                         <Box
                                             as="td"
                                             px={1.5}
@@ -515,14 +327,18 @@ const Reports = () => {
                                             whiteSpace="nowrap"
                                         >
                                             <Badge
-                                                colorPalette={isAbove ? "red" : "green"}
+                                                colorPalette={
+                                                    isAbove ? "red" : "green"
+                                                }
                                                 variant="subtle"
                                                 borderRadius="full"
                                                 px={2}
                                                 py={1}
-                                                fontSize="9px"
+                                                fontSize="12px"
                                             >
-                                                {isAbove ? "⚠ Above threshold" : "✓ Within threshold"}
+                                                {isAbove
+                                                    ? "⚠ Above threshold"
+                                                    : "✓ Within threshold"}
                                             </Badge>
                                         </Box>
                                     </Box>
