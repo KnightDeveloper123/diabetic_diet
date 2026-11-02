@@ -1,7 +1,7 @@
 
 import { Badge, Box, Flex, Text } from "@chakra-ui/react";
 
-import WeeklyMealChart from "./WeeklyMealChart";
+import ThresholdBarGraph from "./ThresholdBarGraph";
 
 const weeklyData = [
     { day: "Mon", date: "19 Oct", value: 168 },
@@ -196,10 +196,11 @@ const Reports = () => {
                 </Box>
             </Box>
 
-            {/* WEEKLY MEAL CHART COMPONENT */}
-            <WeeklyMealChart
+            <ThresholdBarGraph
                 data={weeklyData}
                 threshold={threshold}
+                title="Weekly Carbohydrate Intake"
+                subtitle="19–25 Oct 2026 · Carbohydrates per day (g)"
             />
 
             {/* AI ANALYSIS TABLE */}

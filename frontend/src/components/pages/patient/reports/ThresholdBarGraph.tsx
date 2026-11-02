@@ -20,15 +20,14 @@ interface WeeklyMealData {
     value: number;
 }
 
-interface WeeklyMealChartProps {
+interface ThresholdBarGraphProps {
     data: WeeklyMealData[];
     threshold?: number;
+    title?: string;
+    subtitle?: string;
 }
 
-const WeeklyMealChart = ({
-    data,
-    threshold = 200,
-}: WeeklyMealChartProps) => {
+const ThresholdBarGraph = ({ data, threshold = 200, title, subtitle, }: ThresholdBarGraphProps) => {
     return (
         <Box
             bg="white"
@@ -51,11 +50,11 @@ const WeeklyMealChart = ({
                         fontWeight="700"
                         color="#1E293B"
                     >
-                        Weekly meal graph
+                        {title || ""}
                     </Text>
 
                     <Text fontSize="10px" color="#64748B" mt={1}>
-                        19–25 Oct 2026 · Carbohydrates per day (g)
+                        {subtitle || ""}
                     </Text>
                 </Box>
 
@@ -267,4 +266,4 @@ const WeeklyMealChart = ({
     );
 };
 
-export default WeeklyMealChart;
+export default ThresholdBarGraph;
