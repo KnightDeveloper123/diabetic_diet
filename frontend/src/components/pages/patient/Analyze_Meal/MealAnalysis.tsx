@@ -26,8 +26,8 @@ const getInitialMealData = (): MealFormData => ({
 
 const MealAnalysis = () => {
 
-    const {loading, request }= useFetch();
-    const { user } =useAuth()
+    const { loading, request } = useFetch();
+    const { user } = useAuth()
     // console.log(user)
     const [activeStep, setActiveStep] = useState(0);
 
@@ -95,11 +95,11 @@ const MealAnalysis = () => {
                 withLoader: true
             })
 
-             if (response.status === 1) {
+            if (response.status === 1) {
 
-                // setAnalysisResult(result as MealAnalysisResult);
-            setActiveStep(3);
-             }
+                setAnalysisResult(response.analysis as MealAnalysisResult);
+                setActiveStep(3);
+            }
 
 
             // const result: unknown = await response
@@ -123,7 +123,7 @@ const MealAnalysis = () => {
             //     );
             // }
 
-            
+
         } catch (err) {
             setError(
                 err instanceof Error
@@ -182,44 +182,37 @@ const MealAnalysis = () => {
     };
 
     return (
-        <Box
-            minH="100%"
-            bg="#F5F7FB"
-            p={{ base: 3, md: 6 }}
-            borderRadius="xl"
-        >
-            <Box maxW="1100px" mx="auto">
-                <Text
-                    fontSize={{ base: "xl", md: "2xl" }}
-                    fontWeight="700"
-                    color="#1E293B"
-                >
-                    Analyze a meal
-                </Text>
+        <Box mx="auto">
+            <Text
+                fontSize={{ base: "xl", md: "2xl" }}
+                fontWeight="700"
+                color="#1E293B"
+            >
+                Dashboard
+            </Text>
 
-                <Text
-                    color="gray.600"
-                    fontSize="sm"
-                    mt={1}
-                    mb={6}
-                >
-                    Upload your meal photo and review its estimated
-                    nutritional information.
-                </Text>
+            {/* <Text
+                color="gray.600"
+                fontSize="sm"
+                mt={1}
+                mb={6}
+            >
+                Upload your meal photo and review its estimated
+                nutritional information.
+            </Text> */}
 
-                <MealSteps
-                    activeStep={activeStep}
-                    mealData={mealData}
-                    analysisResult={analysisResult}
-                    loading={loading}
-                    error={error}
-                    onUpdate={updateMealData}
-                    onNext={handleNext}
-                    onBack={handleBack}
-                    onRetry={handleRetry}
-                    onStartAgain={handleStartAgain}
-                />
-            </Box>
+            <MealSteps
+                activeStep={activeStep}
+                mealData={mealData}
+                analysisResult={analysisResult}
+                loading={loading}
+                error={error}
+                onUpdate={updateMealData}
+                onNext={handleNext}
+                onBack={handleBack}
+                onRetry={handleRetry}
+                onStartAgain={handleStartAgain}
+            />
         </Box>
     );
 };

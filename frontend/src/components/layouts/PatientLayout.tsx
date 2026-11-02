@@ -30,7 +30,7 @@ function PatientLayout() {
           gap={2}
           borderBottomWidth="1px"
           borderColor="gray.200"
-          minH="64px"
+          h="64px"
           position="sticky"
           top="0"
           zIndex="10"
@@ -75,6 +75,8 @@ function PatientLayout() {
           p={{ base: 3, sm: 4, md: 6 }}
           flex="1"
           minW="0"
+          overflowY={'auto'}
+          h={'calc(100vh - 64px)'}
         >
           <Outlet />
         </Box>

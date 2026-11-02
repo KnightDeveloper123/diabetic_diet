@@ -170,7 +170,7 @@ router.post(
             );
 
             const pythonResponse = await fetch(
-                `${process.env.PYTHON_API_URL}/api/analyze`,
+                `${process.env.PYTHON_API_URL}/analyze`,
                 {
                     method: "POST",
                     body: formData,
@@ -178,13 +178,10 @@ router.post(
                 }
             );
 
-            if (!pythonResponse.ok) {
+            if (!pythonResponse.ok || !pythonResponse.status) {
 
                 const errorData = await pythonResponse.text();
-
-                throw new Error(
-                    `Python API Error (${pythonResponse.status}): ${errorData}`
-                );
+                return res.status(500).json({ status: 0, message: `Python API Error: ${errorData}` })
             }
 
             const analysis = await pythonResponse.json();
@@ -324,7 +321,7 @@ router.post(
             return res.status(200).json({
                 status: 1,
                 success: "Meal analyzed and saved successfully",
-
+                analysis: { ...analysis, imagePath: imagePath }
             });
 
         } catch (error) {
@@ -516,7 +513,7 @@ router.get("/graph-data", middleware, async (req, res) => {
                     weekday: "short",
                     timeZone: "UTC",
                 }),
-                carbohydrates:carbohydrates,
+                carbohydrates: carbohydrates,
                 threshold: WEEKLY_THRESHOLD,
                 status:
                     carbohydrates > WEEKLY_THRESHOLD

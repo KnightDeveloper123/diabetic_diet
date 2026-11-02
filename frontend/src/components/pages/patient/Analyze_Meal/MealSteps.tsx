@@ -2,10 +2,14 @@
 import {
     Box,
     Button,
+    DataList,
     Flex,
     HStack,
+    Image,
     Input,
+    Spinner,
     Steps,
+    Table,
     Text,
     Textarea,
     VStack,
@@ -20,6 +24,8 @@ import {
     FiRefreshCw,
     FiUploadCloud,
 } from "react-icons/fi";
+import { ASSET_URL } from "../../../../utils/variables";
+import CustomTable from "../../../reusable/CustomTable";
 
 export interface MealFormData {
     mealImage: File | null;
@@ -30,7 +36,16 @@ export interface MealFormData {
     portionInfo: string;
 }
 
-export type MealAnalysisResult = Record<string, unknown>;
+export type MealAnalysisResult = Record<string, any>;
+
+const nutrition_headers = [
+    { name: "Calories (kcal)" },
+    { name: "Carbs (g)" },
+    { name: "Sugar (g)" },
+    { name: "Fiber (g)" },
+    { name: "Protein (g)" },
+    { name: "Fat (g)" },
+]
 
 interface MealStepsProps {
     activeStep: number;
@@ -65,7 +80,6 @@ const MealSteps = ({
     onStartAgain,
 }: MealStepsProps) => {
     const [imagePreview, setImagePreview] = useState("");
-
     // Create and clean up the image preview URL.
     useEffect(() => {
         if (!mealData.mealImage) {
@@ -508,24 +522,13 @@ const MealSteps = ({
                 <Box textAlign="center" py={{ base: 8, md: 12 }}>
                     {loading ? (
                         <>
-                            <Box
-                                mx="auto"
-                                mb={5}
+
+                            <Spinner size="sm" mb={5}
                                 w="65px"
                                 h="65px"
                                 border="5px solid"
                                 borderColor="teal.100"
-                                borderTopColor="teal.500"
-                                borderRadius="full"
-                                animation="spin 1s linear infinite"
-                                css={{
-                                    "@keyframes spin": {
-                                        to: {
-                                            transform: "rotate(360deg)",
-                                        },
-                                    },
-                                }}
-                            />
+                                borderTopColor="teal.500" />
 
                             <Text fontSize="lg" fontWeight="700">
                                 Analyzing your meal...
@@ -575,9 +578,9 @@ const MealSteps = ({
                         </Text>
                     </Flex>
 
-                    <Text color="gray.500" fontSize="sm" mb={5}>
+                    {/* <Text color="gray.500" fontSize="sm" mb={5}>
                         Review the response returned by your analysis API.
-                    </Text>
+                    </Text> */}
 
                     {analysisResult ? (
                         <Box
@@ -592,20 +595,62 @@ const MealSteps = ({
                                 Analysis response
                             </Text>
 
-                            <Box
-                                as="pre"
-                                fontSize="sm"
-                                whiteSpace="pre-wrap"
-                                wordBreak="break-word"
-                                color="gray.700"
-                            >
-                                {JSON.stringify(analysisResult, null, 2)}
-                            </Box>
+                            {analysisResult && <Box mt={4}>
+                                <Text>Result</Text>
+                                <Flex gap={8}>
+                                    <Image aspectRatio={'16 / 9'} h='auto' w={'20rem'} onError={(e) => console.log('Image failed:', e.currentTarget.src)} src={`http://localhost:5000/public${analysisResult?.imagePath}`} borderRadius={'7px'} />
+                                    <Box
+                                        flex={'1'}
+                                        bgColor={'#f5f6fa'}
+                                        p={2}
+                                        borderRadius={6}
+                                        border={'2px solid #d5d6da'}
+                                        fontWeight={'500'}
+                                    >
+                                        Detected Items
+
+                                        <DataList.Root orientation="horizontal" mt={3} w={'100%'}>
+                                            {analysisResult.foods?.map((item: any) => (
+                                                <DataList.Item key={item.name} fontSize={'15px'} justifyContent={'space-between'}>
+                                                    <DataList.ItemLabel>{item.name}</DataList.ItemLabel>
+                                                    <DataList.ItemValue w={'max-content'} flex={'none'}>{item.grams} g</DataList.ItemValue>
+                                                </DataList.Item>
+                                            ))}
+                                        </DataList.Root>
+                                    </Box>
+                                </Flex>
+
+                                <Box mt={4}>
+                                    <Text>
+                                        Nutrition Summary
+                                    </Text>
+
+                                    <CustomTable
+                                        headers={nutrition_headers}
+                                        borderradius="0"
+                                    >
+                                        <Table.Body>
+                                            <Table.Row>
+                                                <Table.Cell px={4} py={3}>{analysisResult?.totals?.calories_kcal}</Table.Cell>
+                                                <Table.Cell px={4} py={3}>{analysisResult?.totals?.carbs_g}</Table.Cell>
+                                                <Table.Cell px={4} py={3}>{analysisResult?.totals?.protein_g}</Table.Cell>
+                                                <Table.Cell px={4} py={3}>{analysisResult?.totals?.fat_g}</Table.Cell>
+                                                <Table.Cell px={4} py={3}>{analysisResult?.totals?.sugar_g}</Table.Cell>
+                                                <Table.Cell px={4} py={3}>{analysisResult?.totals?.fiber_g}</Table.Cell>
+                                            </Table.Row>
+
+
+                                        </Table.Body>
+                                    </CustomTable>
+                                </Box>
+
+                            </Box>}
                         </Box>
                     ) : (
-                        <Text color="gray.500">
-                            No analysis result was returned.
-                        </Text>
+                        // <Text color="gray.500">
+                        //     No analysis result was returned.
+                        // </Text>
+                        <></>
                     )}
 
                     <Box mt={5} p={3} bg="orange.50" borderRadius="md">
