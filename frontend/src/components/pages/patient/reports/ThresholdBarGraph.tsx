@@ -72,7 +72,7 @@ const ThresholdBarGraph = ({ data, threshold = 200, title, subtitle, }: Threshol
             </Flex>
 
             {/* RECHARTS */}
-            <Box w="100%" h="190px">
+            <Box w="100%" h="220px">
                 <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                         data={data}
@@ -80,7 +80,7 @@ const ThresholdBarGraph = ({ data, threshold = 200, title, subtitle, }: Threshol
                             top: 22,
                             right: 5,
                             left: -15,
-                            bottom: 0,
+                            bottom: 10,
                         }}
                         barCategoryGap="35%"
                     >
@@ -106,10 +106,11 @@ const ThresholdBarGraph = ({ data, threshold = 200, title, subtitle, }: Threshol
                                             y={12}
                                             textAnchor="middle"
                                             fill="#475569"
-                                            fontSize={"10px"}
                                             fontWeight={600}
                                         >
-                                            {item?.day}
+                                            <Text as="tspan" fontSize={"10px"}>
+                                                {item?.day}
+                                            </Text>
                                         </text>
 
                                         <text
@@ -117,9 +118,11 @@ const ThresholdBarGraph = ({ data, threshold = 200, title, subtitle, }: Threshol
                                             y={25}
                                             textAnchor="middle"
                                             fill="#64748B"
-                                            fontSize={"9px"}
+
                                         >
-                                            {item?.date}
+                                            <Text as="tspan" fontSize={"9px"}>
+                                                {item?.date}
+                                            </Text>
                                         </text>
                                     </g>
                                 );
