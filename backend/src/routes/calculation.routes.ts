@@ -61,6 +61,7 @@ router.post(
         try {
 
             const { meal_type, user_id } = req.body;
+            console.log(req.body)
 
             // ----------------------------------
             // STEP 1: Validate Image

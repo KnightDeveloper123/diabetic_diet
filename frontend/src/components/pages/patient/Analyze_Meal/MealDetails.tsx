@@ -81,20 +81,19 @@ const Meal_Details = () => {
         });
     };
 
-    const handleAnalyze = () => {
-        navigate("/patient/analysis", {
-            state: {
-                mealImage,
-                mealType,
-                date,
-                time,
-                description,
-                portionInfo,
-                demoFailure,
-            },
-        });
-    };
-
+  const handleAnalyze = () => {
+  navigate("/patient/upload-meal", {
+    state: {
+      mealImage,
+      mealType,
+      date,
+      time,
+      description,
+      portionInfo,
+      demoFailure: false,
+    },
+  });
+};
     return (
         <Flex
             minH="100vh"

@@ -1,6 +1,8 @@
-import { Box, Flex, Heading, Button } from "@chakra-ui/react";
-import { Link, Outlet, useNavigate } from "react-router-dom";
+
+import { Box, Flex, Heading, Button, Text } from "@chakra-ui/react";
+import { Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import Sidebar, { MobileSidebar } from "../../../src/menu/Sidebar";
 
 function DoctorLayout() {
   const { user, logout } = useAuth();
@@ -13,43 +15,70 @@ function DoctorLayout() {
 
   return (
     <Flex minH="100vh" bg="gray.50">
-      <Box
-        w="240px"
-        bg="white"
-        p={5}
-        borderRightWidth="1px"
-      >
-        <Heading size="md" mb={6}>
-          Doctor Portal
-        </Heading>
+      {/* Desktop sidebar */}
+      <Sidebar />
 
-        <Flex direction="column" gap={4}>
-          <Link to="/doctor">Dashboard</Link>
-        </Flex>
-      </Box>
-
-      <Box flex="1" minW="0">
+      {/* Main content */}
+      <Flex direction="column" flex="1" minW="0">
+        {/* Responsive header */}
         <Flex
           bg="white"
-          p={4}
+          px={{ base: 3, md: 5 }}
+          py={3}
           justify="space-between"
           align="center"
+          gap={2}
           borderBottomWidth="1px"
+          borderColor="gray.200"
+          minH="64px"
+          position="sticky"
+          top="0"
+          zIndex="10"
         >
-          <Heading size="md">Diabetic Diet Assistant</Heading>
+          <Flex align="center" gap={{ base: 1, md: 3 }} minW="0">
+            {/* Mobile drawer trigger */}
+            <MobileSidebar />
 
-          <Flex align="center" gap={3}>
-            <Box>{user?.name}</Box>
-            <Button onClick={handleLogout} size="sm">
+            <Heading
+              size={{ base: "sm", md: "md" }}
+              color="gray.800"
+              truncate
+            >
+              Diabetic Diet Assistant
+            </Heading>
+          </Flex>
+
+          <Flex align="center" gap={{ base: 2, md: 3 }} flexShrink="0">
+            <Text
+              display={{ base: "none", sm: "block" }}
+              fontSize="sm"
+              color="gray.600"
+              maxW="140px"
+              truncate
+            >
+              {user?.name}
+            </Text>
+
+            <Button
+              onClick={handleLogout}
+              size="sm"
+              colorPalette="blue"
+              variant="outline"
+            >
               Logout
             </Button>
           </Flex>
         </Flex>
 
-        <Box p={6}>
+        {/* Page content */}
+        <Box
+          p={{ base: 3, sm: 4, md: 6 }}
+          flex="1"
+          minW="0"
+        >
           <Outlet />
         </Box>
-      </Box>
+      </Flex>
     </Flex>
   );
 }

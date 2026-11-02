@@ -616,7 +616,7 @@ router.get(
 
 router.get(
   "/get-all-doctor",
-  middleware,
+  // middleware,
   async (req, res): Promise<void> => {
     try {
       const {

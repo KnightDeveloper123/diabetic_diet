@@ -71,6 +71,8 @@ router.post("/user_register", async (req, res) => {
       role,
     ]);
 
+    
+
     return res.status(201).json({
       status: 1,
       message: "User registered successfully",
@@ -115,6 +117,14 @@ router.post("/register", async (req, res) => {
       });
     }
 
+     if (role === "patient" && !doctor_id) {
+        res.status(400).json({
+          status: 0,
+          message: "Doctor is required for patient",
+        });
+        return;
+      }
+
     // hash password
     const secPass = await bcrypt.hash(password, 10);
 
@@ -130,11 +140,10 @@ router.post("/register", async (req, res) => {
       phone,
       password,
       address,
-      doctor_id,
       role,
       created_at
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, now())
+      VALUES (?, ?, ?, ?, ?, ?, ?, now())
     `;
 
     const result = await executeQuery(query, [
@@ -144,9 +153,26 @@ router.post("/register", async (req, res) => {
       phone,
       secPass,
       address,
-      doctor_id,
       role,
     ]);
+     if (role === "patient") {
+            const patientQuery = `
+                        INSERT INTO patient
+                        (
+                            id,
+                            patient_id,
+                            doctor_id
+                        )
+                        VALUES (?, ?, ?)
+                    `;
+    
+            await executeQuery(patientQuery, [
+              generateUUID(),
+              generateId,
+              doctor_id,
+            ]);
+          }
+    
 
     return res.status(201).json({
       status: 1,
@@ -175,12 +201,13 @@ router.post("/login", async (req, res) => {
       password: string;
       remember?: boolean;
     } = req.body;
-    console.log(email)
-    console.log(password)
+    // console.log(email)
+    // console.log(password)
 
 
     if (!email || !password) {
       return res.status(400).json({
+        status:0,
         error: "Email and Password are required",
       });
     }
@@ -200,6 +227,7 @@ router.post("/login", async (req, res) => {
 
     if (!user) {
       return res.status(400).json({
+         status:0,
         error: "User not found",
       });
     }
@@ -211,6 +239,7 @@ router.post("/login", async (req, res) => {
 
     if (!pwdCompare) {
       return res.status(400).json({
+         status:0,
         error: "Wrong password",
       });
     }
@@ -227,6 +256,7 @@ router.post("/login", async (req, res) => {
     );
 
     return res.status(200).json({
+       status:1,
       message: "Login success",
       data: {
         id: user.id,

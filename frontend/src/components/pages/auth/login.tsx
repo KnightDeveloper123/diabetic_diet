@@ -1,5 +1,5 @@
-
 import { useState } from "react";
+
 import {
   Box,
   Button,
@@ -12,32 +12,45 @@ import {
   IconButton,
   Image,
 } from "@chakra-ui/react";
-import { FaGgCircle } from "react-icons/fa6";
+
 import { useForm } from "react-hook-form";
-import { useNavigate, Link as RouterLink } from "react-router-dom";
+
+import {
+  Link as RouterLink,
+  useNavigate,
+} from "react-router-dom";
+
 import { FiEye, FiEyeOff } from "react-icons/fi";
+
 import { useAuth } from "../../context/AuthContext";
+import useFetch from "../../hooks/uesFetch";
 
 import type {
   LoginResponse,
-  UserRole,
+  UserRole, AuthUser
 } from "../../types/auth.types";
 
 import loginImage from "../../../assets/Login.png";
+import { FaGgCircle } from "react-icons/fa6";
 
 interface LoginForm {
   email: string;
   password: string;
 }
 
-function getDashboardPath(role: UserRole) {
+function getDashboardPath(role: UserRole): string {
   switch (role) {
     case "admin":
       return "/admin";
+
     case "doctor":
       return "/doctor";
+
     case "patient":
       return "/patient";
+
+    default:
+      return "/login";
   }
 }
 
@@ -45,43 +58,77 @@ function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
+  const { request, loading } = useFetch();
+
   const [serverError, setServerError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<LoginForm>();
 
-  const onSubmit = async () => {
+  const onSubmit = async (data: LoginForm) => {
     setServerError("");
 
     try {
-      // Dummy login response
-      // Replace with your API response when backend is ready.
-      const response: LoginResponse = {
-        token: "dummy-jwt-token",
-        user: {
-          id: "1",
-          name: "vamika",
-          email: "vamika1@mailinator.com",
-          role: "patient",
-        },
-      };
+      const response = await request({
+        url: "/api/auth/login",
+        method: "POST",
+        body: data,
+        withLoader: true,
+      });
 
-      const result = response;
+      console.log(response
 
-      login(result);
+      )
 
-      navigate(getDashboardPath(result.user.role), {
+      const res = response as LoginResponse;
+
+      if (res.status !== 1) {
+        setServerError(
+          res.error || res.message || "Invalid email or password"
+        );
+        return;
+      }
+      if (!res.data) {
+        return;
+      }
+
+      // Save authentication token
+      if (res.auth_token) {
+        localStorage.setItem("auth_token", res.auth_token);
+      }
+
+      // Save user details
+      if (res.data) {
+        localStorage.setItem("user", JSON.stringify(res.data));
+      }
+      const user: AuthUser = res.data;
+
+      const role: UserRole = user.role;
+
+      console.log("Login successful:", user);
+
+      // Save authentication details
+      localStorage.setItem("auth_token", res.auth_token || "");
+      localStorage.setItem("user", JSON.stringify(user));
+      login(res)
+      // Navigate based on role
+      navigate(getDashboardPath(role), {
         replace: true,
       });
-    } catch {
-      setServerError("Login failed. Please try again.");
+    } catch (error: unknown) {
+      console.error("Login error:", error);
+
+      setServerError(
+        error instanceof Error
+          ? error.message
+          : "Something went wrong"
+      );
     }
   };
-
   return (
     <Flex
       minH="100vh"
@@ -236,7 +283,7 @@ function Login() {
         >
           {/* Login Heading */}
           <Box mb={8}>
-            <Box
+            {/* <Box
               color="#15803D"
               mb={4}
             >
@@ -246,7 +293,7 @@ function Login() {
               >
                 DOCTOR ACCESS
               </Text>
-            </Box>
+            </Box> */}
 
             <Heading
               as="h2"
@@ -400,7 +447,7 @@ function Login() {
                 borderRadius="7px"
                 fontSize="15px"
                 fontWeight="600"
-                loading={isSubmitting}
+                loading={loading}
                 _hover={{ bg: "#1D4ED8" }}
                 _active={{ bg: "#1E40AF" }}
               >
@@ -417,7 +464,8 @@ function Login() {
             color="#6B7280"
             lineHeight="1.8"
           >
-            New to the platform?{" "}
+            New to the platform? Register as a{" "}
+
             <ChakraLink
               asChild
               color="#2563EB"
@@ -425,9 +473,24 @@ function Login() {
               _hover={{ textDecoration: "underline" }}
             >
               <RouterLink to="/register">
-                Register as a doctor
+                Doctor
               </RouterLink>
             </ChakraLink>
+
+            {" or "}
+
+            <ChakraLink
+              asChild
+              color="#2563EB"
+              fontWeight="600"
+              _hover={{ textDecoration: "underline" }}
+            >
+              <RouterLink to="/patient-register">
+                Patient
+              </RouterLink>
+            </ChakraLink>
+
+            {" to get started."}
           </Text>
         </Box>
       </Flex>

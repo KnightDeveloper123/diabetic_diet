@@ -20,10 +20,10 @@ import AdminLayout from "../layouts/AdminLayout";
 import DoctorLayout from "../layouts/DoctorLayout";
 import PatientLayout from "../layouts/PatientLayout";
 import Patients from "../pages/patient/Patients";
-import UploadMeal from "../pages/patient/Analyze_Meal/UploadMeal";
-import Meal_Details from "../../components/pages/patient/Analyze_Meal/MealDetails";
+
+// import Meal_Details from "../../components/pages/patient/Analyze_Meal/MealDetails";
 import MealAnalysis from "../../components/pages/patient/Analyze_Meal/MealAnalysis";
-import Review_Results from "../../components/pages/patient/Analyze_Meal/ReviewResult";
+// import Review_Results from "../../components/pages/patient/Analyze_Meal/ReviewResult";
 
 
 // import AnalyzeMeal from "../pages/patient/Analyze_Meal/AnalyzeMeal";
@@ -92,6 +92,8 @@ function AppRoutes() {
 
         <Route path="/unauthorized" element={<Unauthorized />} />
 
+        <Route path="/patient-register" element={<PatientRegister />} />
+
         {/* Admin routes */}
         <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
           <Route path="/admin" element={<AdminLayout />}>
@@ -113,11 +115,16 @@ function AppRoutes() {
         <Route element={<ProtectedRoute allowedRoles={["patient"]} />}>
           <Route path="/patient" element={<PatientLayout />}>
             <Route index element={<PatientDashboard />} />
-            <Route path="/patient-register" element={<PatientRegister />} />
-            <Route path="/patient/analyze-meal" element={<UploadMeal />} />
-            <Route path="meal-details" element={<Meal_Details />} />
-            <Route path="analysis" element={<MealAnalysis />} />
-            <Route path="review-results" element={<Review_Results />} />
+
+            {/* <Route path="/patient/analyze-meal" element={<UploadMeal />} /> */}
+            {/* <Route path="meal-details" element={<Meal_Details />} /> */}
+            {/* <Route path="analysis" element={<MealAnalysis />} /> */}
+            {/* <Route path="review-results" element={<Review_Results />} /> */}
+            <Route path="settings" element={<ProfileSettings />} />
+            <Route
+    path="upload-meal"
+    element={<MealAnalysis />}
+/>
 
             {/* <Route path="analyze" element={<AnalyzeMeal />} /> */}
           </Route>

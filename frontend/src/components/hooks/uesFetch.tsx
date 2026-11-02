@@ -1,121 +1,69 @@
-
 import { useState, useCallback } from "react";
 
-type HTTPMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+type HTTPMethod = "GET" | "POST" | "PUT" | "DELETE";
 
 interface RequestOptions {
   url: string;
   method?: HTTPMethod;
-  body?: unknown;
+  body?: any;
   customHeaders?: Record<string, string>;
   signal?: AbortSignal | null;
   withLoader?: boolean;
 }
 
-interface ApiErrorResponse {
-  message?: string;
-  error?: string;
-}
 
-const useFetch = <T = unknown>() => {
-  const [data, setData] = useState<T | null>(null);
+const useFetch = <T = any>() => {
+
+  const [data, setData] = useState<T | any>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const request = useCallback(
-    async ({
-      url,
-      method = "GET",
-      body = null,
-      customHeaders = {},
-      signal = null,
-      withLoader = true,
-    }: RequestOptions): Promise<T | null> => {
-      if (withLoader) setLoading(true);
 
-      setError(null);
+  const request = useCallback(async ({ url, method = "GET", body = null, customHeaders = {}, signal = null, withLoader = true }: RequestOptions): Promise<T | null> => {
+    if (withLoader) setLoading(true);
+    setError(null);
+    try {
+      const token = localStorage.getItem("auth_token") || sessionStorage.getItem('auth_token');
+      const isFormData = body instanceof FormData;
 
-      try {
-        const token =
-          localStorage.getItem("token") ||
-          sessionStorage.getItem("token");
+      const headers: Record<string, string> = {
+        Authorization: `Bearer ${token ?? ""}`,
+        ...customHeaders,
+      };
 
-        const isFormData = body instanceof FormData;
+      if (!isFormData) {
+        headers["Content-Type"] = "application/json";
+      }
 
-        const headers: Record<string, string> = {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          ...customHeaders,
-        };
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}${url}`, {
+        method,
+        headers,
+        body: isFormData ? body : body ? JSON.stringify(body) : null,
+        ...(signal ? { signal } : {}),
+        credentials: "include",
+      });
+      const result: T = await response.json();
 
-        if (!isFormData && body !== null && body !== undefined) {
-          headers["Content-Type"] = "application/json";
-        }
-
-        const response = await fetch(
-          `${import.meta.env.VITE_BACKEND_URL}${url}`,
-          {
-            method,
-            headers,
-            body:
-              body === null || body === undefined
-                ? undefined
-                : isFormData
-                  ? body
-                  : JSON.stringify(body),
-            signal: signal ?? undefined,
-            credentials: "include",
-          }
-        );
-
-        const result = await response.json();
-
-        if (!response.ok) {
-          const errorResponse = result as ApiErrorResponse;
-
-          const errorMessage =
-            errorResponse?.message ||
-            errorResponse?.error ||
-            `HTTP error: ${response.status}`;
-
-          setError(errorMessage);
-
-          return result as T;
-        }
-
-        setData(result as T);
-
-        return result as T;
-      } catch (err) {
-        if (err instanceof Error && err.name === "AbortError") {
-          return null;
-        }
-
-        const errorMessage =
-          err instanceof Error ? err.message : "Something went wrong";
+      if (!response.ok) {
+        const errorMessage = (result as any)?.message || (result as any)?.error || `HTTP error: ${response.status}`;
 
         setError(errorMessage);
-
-        throw err;
-      } finally {
-        if (withLoader) setLoading(false);
+       
+        return result;
       }
-    },
-    []
-  );
 
-  const reset = useCallback(() => {
-    setData(null);
-    setError(null);
-    setLoading(false);
+      setData(result);
+      return result;
+    } catch (err) {
+      if ((err as Error).name === "AbortError") return null;
+      setError((err as Error).message);
+      throw err;
+    } finally {
+      if (withLoader) setLoading(false);
+    }
   }, []);
 
-  return {
-    data,
-    loading,
-    error,
-    request,
-    reset,
-  };
+  return { data, loading, error, request };
 };
 
 export default useFetch;
