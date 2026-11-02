@@ -6,11 +6,15 @@ import { MdOutlineDashboard } from "react-icons/md";
 import { RxPeople } from "react-icons/rx";
 import { IoSettingsOutline } from "react-icons/io5";
 
+import { useAuth } from "../components/context/AuthContext";
+
 const Sidebar = () => {
-    const sidebarItems = [
+    const { user } = useAuth();
+
+    const adminItems = [
         {
             title: "Dashboard",
-            url: "/dashboard",
+            url: "/admin",
             icon: MdOutlineDashboard,
         },
         {
@@ -24,6 +28,44 @@ const Sidebar = () => {
             icon: IoSettingsOutline,
         },
     ];
+
+    const doctorItems = [
+        {
+            title: "Dashboard",
+            url: "/doctor",
+            icon: MdOutlineDashboard,
+        },
+        {
+            title: "Patients",
+            url: "/doctor/patients",
+            icon: RxPeople,
+        },
+        {
+            title: "Settings",
+            url: "/doctor/settings",
+            icon: IoSettingsOutline,
+        },
+    ];
+
+    const patientItems = [
+        {
+            title: "Dashboard",
+            url: "/patient",
+            icon: MdOutlineDashboard,
+        },
+        {
+            title: "Reports",
+            url: "/patient/reports",
+            icon: MdOutlineDashboard,
+        },
+        {
+            title: "Settings",
+            url: "/patient/settings",
+            icon: IoSettingsOutline,
+        },
+    ];
+
+    const menuItems = user?.role === "admin" ? adminItems : user?.role === "doctor" ? doctorItems : user?.role === "patient" ? patientItems : [];
 
     return (
         <Box
@@ -48,7 +90,7 @@ const Sidebar = () => {
             </Text>
 
             <VStack align="stretch" gap={2}>
-                {sidebarItems.map((item) => {
+                {menuItems.map((item) => {
                     const ItemIcon = item.icon;
 
                     return (
@@ -56,6 +98,7 @@ const Sidebar = () => {
                             key={item.title}
                             to={item.url}
                             end
+                            style={{ textDecoration: "none" }}
                         >
                             {({ isActive }) => (
                                 <Flex

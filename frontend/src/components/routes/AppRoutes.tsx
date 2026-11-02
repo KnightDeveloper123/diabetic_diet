@@ -32,6 +32,7 @@ import ProfileSettings from "../../components/pages/settings/ProfileSettings";
 import ProtectedRoute from "./ProtectedRoute";
 import type { UserRole } from "../types/auth.types";
 import { Box, Heading, Text } from "@chakra-ui/react";
+import Reports from "../pages/patient/Reports";
 
 function getDashboardPath(role: UserRole) {
   switch (role) {
@@ -115,16 +116,16 @@ function AppRoutes() {
         <Route element={<ProtectedRoute allowedRoles={["patient"]} />}>
           <Route path="/patient" element={<PatientLayout />}>
             <Route index element={<PatientDashboard />} />
+            <Route path="/patient/reports" element={<Reports />} />
 
-            {/* <Route path="/patient/analyze-meal" element={<UploadMeal />} /> */}
             {/* <Route path="meal-details" element={<Meal_Details />} /> */}
             {/* <Route path="analysis" element={<MealAnalysis />} /> */}
             {/* <Route path="review-results" element={<Review_Results />} /> */}
             <Route path="settings" element={<ProfileSettings />} />
             <Route
-    path="upload-meal"
-    element={<MealAnalysis />}
-/>
+              path="upload-meal"
+              element={<MealAnalysis />}
+            />
 
             {/* <Route path="analyze" element={<AnalyzeMeal />} /> */}
           </Route>

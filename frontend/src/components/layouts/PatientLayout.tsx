@@ -2,7 +2,7 @@
 import { Box, Flex, Heading, Button, Text } from "@chakra-ui/react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import Sidebar, { MobileSidebar } from "../../../src/menu/Sidebar";
+import Sidebar from "../../../src/menu/Sidebar";
 
 function PatientLayout() {
   const { user, logout } = useAuth();
@@ -37,7 +37,7 @@ function PatientLayout() {
         >
           <Flex align="center" gap={{ base: 1, md: 3 }} minW="0">
             {/* Mobile drawer trigger */}
-            <MobileSidebar />
+            {/* <MobileSidebar /> */}
 
             <Heading
               size={{ base: "sm", md: "md" }}
