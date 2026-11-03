@@ -30,7 +30,7 @@ import type {
   UserRole, AuthUser
 } from "../../types/auth.types";
 
-import loginImage from "../../../assets/Login.png";
+import loginImage from "../../../assets/login.png";
 import { FaGgCircle } from "react-icons/fa6";
 
 interface LoginForm {

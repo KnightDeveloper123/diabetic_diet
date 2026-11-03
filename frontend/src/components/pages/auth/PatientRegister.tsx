@@ -20,7 +20,7 @@ import { Link as RouterLink, useNavigate } from "react-router-dom";
 import CustomCombobox from "../../reusable/CustomCombobox";
 import { useDoctor } from "../../context/DoctorContext";
 
-import loginImage from "../../../assets/Login.png";
+import loginImage from "../../../assets/login.png";
 import useFetch from "../../hooks/uesFetch";
 
 interface RegisterForm {
@@ -29,7 +29,7 @@ interface RegisterForm {
     phone: string;
     address: string;
     doctor_id: string[] | string;
-    role:"patient"
+    role: "patient"
     password: string;
     confirmPassword: string;
 }
@@ -52,7 +52,7 @@ function PatientRegister() {
         value: d.id
     }));
     // console.log(allDoctor)
-    const navigate=useNavigate();
+    const navigate = useNavigate();
 
     const {
         register,
@@ -61,7 +61,7 @@ function PatientRegister() {
         control,
         reset,
         formState: { errors, isSubmitting },
-    } = useForm<RegisterForm>({ });
+    } = useForm<RegisterForm>({});
 
     const password = watch("password");
 
@@ -83,7 +83,7 @@ function PatientRegister() {
         const finalData = {
             ...data,
             doctor_id: Array.isArray(data.doctor_id) ? data.doctor_id[0] : data.doctor_id,
-            role:'patient'
+            role: 'patient'
         }
         // console.log(finalData)
         try {
@@ -95,7 +95,7 @@ function PatientRegister() {
             })
             if (response.status === 1) {
                 // showAlert(response.message, 'success')
-                
+
                 reset({
                     name: '',
                     email: '',
