@@ -16,7 +16,7 @@ import {
 } from "@chakra-ui/react";
 
 import { useEffect, useState } from "react";
-
+import * as XLSX from "xlsx";
 import {
     FiArrowLeft,
     FiArrowRight,
@@ -26,6 +26,7 @@ import {
 } from "react-icons/fi";
 import { ASSET_URL } from "../../../../utils/variables";
 import CustomTable from "../../../reusable/CustomTable";
+import CustomButton from "../../../reusable/CustomButton";
 
 export interface MealFormData {
     mealImage: File | null;
@@ -125,6 +126,103 @@ const MealSteps = ({
 
         // Allows selecting the same file again later.
         input.value = "";
+    };
+
+    const exportNutritionToExcel = () => {
+        if (!analysisResult) {
+            alert("No nutrition data available");
+            return;
+        }
+
+        const { totals, foods } = analysisResult;
+
+        const worksheetData = [
+            // Detected Foods heading
+            ["Detected Foods"],
+
+            // Food table headers
+            ["Food Name", "Quantity (g)", "Glycemic Index (GI)", "Glycemic Load (GL)"],
+
+            // Food records
+            ...(foods ?? []).map((item: any) => [
+                item.name,
+                item.grams,
+                item.gi,
+                item.gl,
+            ]),
+
+            // Empty row
+            [],
+
+            // Nutrition Summary heading
+            ["Nutrition Summary"],
+
+            // Nutrition headers
+            [
+                "Calories (kcal)",
+                "Carbs (g)",
+                "Protein (g)",
+                "Fat (g)",
+                "Sugar (g)",
+                "Fiber (g)",
+                "Cholesterol (mg)",
+                "Calcium (mg)",
+            ],
+
+            // Nutrition values
+            [
+                totals?.calories_kcal ?? 0,
+                totals?.carbs_g ?? 0,
+                totals?.protein_g ?? 0,
+                totals?.fat_g ?? 0,
+                totals?.sugar_g ?? 0,
+                totals?.fiber_g ?? 0,
+                totals?.cholesterol_mg ?? 0,
+                totals?.calcium_mg ?? 0,
+            ],
+        ];
+
+        const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+
+        // Column widths
+        worksheet["!cols"] = [
+            { wch: 30 },
+            { wch: 18 },
+            { wch: 22 },
+            { wch: 22 },
+            { wch: 15 },
+            { wch: 15 },
+            { wch: 20 },
+            { wch: 15 },
+        ];
+
+        // Merge section headings
+        const foodEndRow = (foods?.length ?? 0) + 1;
+        const nutritionHeadingRow = foodEndRow + 2;
+
+        worksheet["!merges"] = [
+            {
+                s: { r: 0, c: 0 },
+                e: { r: 0, c: 3 },
+            },
+            {
+                s: { r: nutritionHeadingRow, c: 0 },
+                e: { r: nutritionHeadingRow, c: 7 },
+            },
+        ];
+
+        const workbook = XLSX.utils.book_new();
+
+        XLSX.utils.book_append_sheet(
+            workbook,
+            worksheet,
+            "Nutrition Report"
+        );
+
+        XLSX.writeFile(
+            workbook,
+            `Nutrition_Report_${new Date().toISOString().slice(0, 10)}.xlsx`
+        );
     };
 
     return (
@@ -591,14 +689,17 @@ const MealSteps = ({
                             p={4}
                             overflowX="auto"
                         >
-                            <Text fontWeight="600" mb={3}>
-                                Analysis response
-                            </Text>
+                            <Flex justifyContent={'space-between'}>
+                                <Text fontWeight="600" mb={3}>
+                                    Analysis response
+                                </Text>
+                                <CustomButton onClick={exportNutritionToExcel}>Export</CustomButton>
+                            </Flex>
 
                             {analysisResult && <Box mt={4}>
                                 <Text>Result</Text>
                                 <Flex gap={8}>
-                                    <Image aspectRatio={'16 / 9'} h='auto' w={'20rem'} onError={(e) => console.log('Image failed:', e.currentTarget.src)} src={`http://localhost:5000/public${analysisResult?.imagePath}`} borderRadius={'7px'} />
+                                    <Image aspectRatio={'16 / 9'} h='auto' w={'20rem'} src={`${ASSET_URL}${analysisResult?.imagePath}`} borderRadius={'7px'} />
                                     <Box
                                         flex={'1'}
                                         bgColor={'#f5f6fa'}
