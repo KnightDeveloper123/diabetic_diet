@@ -93,12 +93,12 @@ const Reports = () => {
 
     const charts = pythonCharts?.charts;
 
-    const hasCharts = Boolean(
-        charts &&
-        Object.values(charts).some(
-            (chart) => chart && Array.isArray(chart.data) && chart.data.length > 0
-        )
-    );
+    // const hasCharts = Boolean(
+    //     charts &&
+    //     Object.values(charts).some(
+    //         (chart) => chart && Array.isArray(chart.data) && chart.data.length > 0
+    //     )
+    // );
 
     return (
         <Box minH="100vh">
@@ -114,7 +114,7 @@ const Reports = () => {
                         Reports
                     </Text>
                     <Text fontSize="sm" color="gray.500" mt={1}>
-                        {reportData ? `Week of ${formatDateRange(reportData?.week_start, reportData?.week_end)}` : "Your weekly nutrition reports"}
+                        {reportData ? `Week of ${formatDateRange(reportData?.week_start || "", reportData?.week_end || "")}` : "Your weekly nutrition reports"}
                     </Text>
                 </Box>
 
