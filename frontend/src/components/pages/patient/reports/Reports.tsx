@@ -1,121 +1,107 @@
-
-import { useEffect, useState } from "react";
-import { Badge, Box, Flex, Text, Input, Spinner } from "@chakra-ui/react";
-import ThresholdBarGraph from "./ThresholdBarGraph";
+import { useCallback, useEffect, useState } from "react";
+import { Box, Flex, Input, Spinner, Text } from "@chakra-ui/react";
 import useFetch from "../../../hooks/uesFetch";
 import { useAuth } from "../../../context/AuthContext";
+import { CompareGlucoseChart, GlucoseCarbsScatterChart, GlucoseJourneyChart, TodayGlucoseChart, TodayNutritionRadarChart, WeeklyNutritionRadarChart, WhatIfGlucoseChart, type PythonPlotChart } from "./GlucoseLineChart";
 
-interface WeeklyGraphItem {
-    date: string;
-    day: string;
-    value: number;
-    carbohydrates: number;
-    threshold: number;
-    status: string;
+interface ReportCharts {
+    today?: PythonPlotChart;
+    whatif?: PythonPlotChart;
+    compare?: PythonPlotChart;
+    journey?: PythonPlotChart;
+    scatter?: PythonPlotChart;
+    radar_today?: PythonPlotChart;
+    radar_week?: PythonPlotChart;
 }
 
-interface RecentMeal {
-    id: string;
-    date: string;
-    meal: string;
-    items: string;
-    carbs: number;
-    carbohydrates: number;
-    calories: number;
-    protein: number;
-    fats: number;
-    fiber: number;
-    sugar: number;
-    risk_level: string;
-    status: string;
+interface PythonChartsResponse {
+    user?: string;
+    whatif_text?: string;
+    charts?: ReportCharts;
 }
 
 interface ReportData {
-    selected_date: string;
-    week_start: string;
-    week_end: string;
-    summary: {
-        meals_recorded: number;
-        daily_average: number;
-        days_above_threshold: number;
-        weekly_total: number;
-        daily_threshold: number;
-        weekly_threshold: number;
-    };
-    weekly_graph: WeeklyGraphItem[];
-    recent_meals: RecentMeal[];
+    selected_date?: string;
+    week_start?: string;
+    week_end?: string;
+    pythonCharts?: PythonChartsResponse | null;
+    // Supports an API that returns the Python response directly.
+    user?: string;
+    whatif_text?: string;
+    charts?: ReportCharts;
 }
 
+const getToday = () => {
+    const today = new Date();
+    const offset = today.getTimezoneOffset();
+    return new Date(today.getTime() - offset * 60_000)
+        .toISOString()
+        .slice(0, 10);
+};
+
+const formatDateRange = (start: string, end: string) => {
+    const format = (date: string) =>
+        new Date(`${date}T00:00:00`).toLocaleDateString("en-GB", {
+            day: "2-digit",
+            month: "short",
+        });
+
+    return `${format(start)} – ${format(end)}`;
+};
+
 const Reports = () => {
-    const [reportData, setReportData] = useState<ReportData | null>(null);
-    const [selectedDate, setSelectedDate] = useState(
-        new Date().toLocaleDateString("en-CA")
-    );
-
-    const { loading, request } = useFetch();
     const { user } = useAuth();
+    const { loading, error, request } = useFetch<any>();
 
-    // Fetch Reports API
-    const fetchReports = async (date: string) => {
+    const [reportData, setReportData] = useState<ReportData | null>(null);
+    const [selectedDate, setSelectedDate] = useState(getToday());
+
+    const fetchReports = useCallback(async () => {
+        if (!user?.id) return;
+
         try {
-
-            if (!user?.id) {
-                throw new Error("User authentication required");
-            }
-
             const response = await request({
-                url: `/api/calculation/reports?userId=${encodeURIComponent(user.id)}&date=${encodeURIComponent(date)}`,
+                url: `/api/calculation/reports?userId=${encodeURIComponent(String(user.id))}&date=${encodeURIComponent(selectedDate)}`,
                 method: "GET",
             });
 
-            if (response?.status === 1) {
-                setReportData(response.data);
-            } else {
+            if (response?.status !== 1) {
                 setReportData(null);
+                return;
             }
+            const payload = response?.data ?? response;
+
+            setReportData(payload);
+            console.log("Reports API payload:", payload);
+            console.log(
+                "Python charts:",
+                payload?.pythonCharts?.charts ?? payload?.charts
+            );
         } catch (err) {
             console.error("Reports API Error:", err);
             setReportData(null);
         }
-    };
+    }, [request, selectedDate, user?.id]);
 
-    // Initial API call
     useEffect(() => {
-        fetchReports(selectedDate);
-    }, []);
+        fetchReports();
+    }, [fetchReports]);
 
-    // Date formatting
-    const formatDateRange = (start: string, end: string) => {
-        const format = (date: string) =>
-            new Date(`${date}T00:00:00`).toLocaleDateString("en-GB", {
-                day: "2-digit",
-                month: "short",
-            });
+    const pythonCharts =
+        reportData?.pythonCharts ??
+        (reportData?.charts ? reportData : undefined);
 
-        return `${format(start)} – ${format(end)}`;
-    };
+    const charts = pythonCharts?.charts;
 
-    // Transform API graph data for ThresholdBarGraph
-    const weeklyData =
-        reportData?.weekly_graph.map((item) => ({
-            day: item.day,
-            date: new Date(`${item.date}T00:00:00`).toLocaleDateString(
-                "en-GB",
-                { day: "2-digit", month: "short" }
-            ),
-            value: Number(item.carbohydrates) || 0,
-        })) || [];
-
-    const summary = reportData?.summary;
-
-    const meals = reportData?.recent_meals || [];
-
-    const threshold = summary?.weekly_threshold ?? 200;
+    const hasCharts = Boolean(
+        charts &&
+        Object.values(charts).some(
+            (chart) => chart && Array.isArray(chart.data) && chart.data.length > 0
+        )
+    );
 
     return (
         <Box minH="100vh">
-
-            {/* PAGE HEADER */}
             <Flex
                 justify="space-between"
                 align={{ base: "flex-start", md: "center" }}
@@ -124,415 +110,55 @@ const Reports = () => {
                 mb={5}
             >
                 <Box>
-                    <Text
-                        fontSize="2xl"
-                        fontWeight="700"
-                        color="gray.800"
-                        mb={2}
-                    >
+                    <Text fontSize="lg" fontWeight="700" color="gray.800">
                         Reports
                     </Text>
-
-                    <Text fontSize="sm" color="gray.500">
-                        {reportData
-                            ? `Week of ${formatDateRange(
-                                reportData.week_start,
-                                reportData.week_end
-                            )}`
-                            : "Your weekly nutrition reports"}
-                        {" "}· Only you and your doctor can see these reports.
+                    <Text fontSize="sm" color="gray.500" mt={1}>
+                        {reportData ? `Week of ${formatDateRange(reportData?.week_start, reportData?.week_end)}` : "Your weekly nutrition reports"}
                     </Text>
                 </Box>
 
-                {/* DATE FILTER */}
-                <Box>
-                    <Input
-                        type="date"
-                        value={selectedDate}
-                        max={new Date().toLocaleDateString("en-CA")}
-                        onChange={(e) => {
-                            const date = e.target.value;
-                            setSelectedDate(date);
-
-                            if (date) {
-                                fetchReports(date);
-                            }
-                        }}
-                        size="sm"
-                        width="170px"
-                        borderColor="gray.200"
-                    />
-                </Box>
+                <Input
+                    type="date"
+                    value={selectedDate}
+                    max={getToday()}
+                    onChange={(event) => setSelectedDate(event.target.value)}
+                    size="sm"
+                    width="170px"
+                    borderColor="gray.200"
+                />
             </Flex>
 
-            {/* LOADING */}
             {loading && (
-                <Flex justify="center" align="center" py={12}>
-                    <Spinner size="lg" color="teal.500" />
-                    <Text ml={3} color="gray.500" fontSize="sm">
+                <Flex justify="center" align="center" py={10}>
+                    <Spinner color="teal.500" />
+                    <Text ml={3} fontSize="sm" color="gray.500">
                         Loading reports...
                     </Text>
                 </Flex>
             )}
 
-            {/* ERROR */}
-            {/* {!loading && (
-                <Box
-                    bg="red.50"
-                    border="1px solid #FECACA"
-                    borderRadius="7px"
-                    p={4}
-                    mb={4}
-                >
-                    <Text color="red.600" fontSize="sm">
-                        {error}
-                    </Text>
-
-                    <Text
-                        color="blue.600"
-                        fontSize="sm"
-                        mt={2}
-                        cursor="pointer"
-                        onClick={() => fetchReports(selectedDate)}
-                    >
-                        Retry
-                    </Text>
-                </Box>
-            )} */}
-
-            {/* REPORT CONTENT */}
-            {!loading && reportData && (
-                <>
-                    {/* SUMMARY CARDS */}
-                    <Box
-                        display="grid"
-                        gridTemplateColumns={{
-                            base: "1fr",
-                            sm: "repeat(2, 1fr)",
-                            lg: "repeat(3, 1fr)",
-                        }}
-                        gap={3}
-                        mb={4}
-                    >
-                        {/* MEALS RECORDED */}
-                        <Box
-                            bg="white"
-                            border="1px solid #E2E8F0"
-                            borderRadius="7px"
-                            p={3}
-                            minH="101px"
-                        >
-                            <Text fontSize="sm" color="gray.600" mb={1}>
-                                Meals recorded
-                            </Text>
-
-                            <Text
-                                fontSize="2xl"
-                                fontWeight="700"
-                                color="gray.800"
-                                lineHeight="1.3"
-                            >
-                                {summary?.meals_recorded ?? 0}
-                            </Text>
-
-                            <Text fontSize="xs" color="gray.500" mt={1}>
-                                {formatDateRange(
-                                    reportData.week_start,
-                                    reportData.week_end
-                                )}
-                            </Text>
-                        </Box>
-
-                        {/* DAILY AVERAGE */}
-                        <Box
-                            bg="white"
-                            border="1px solid #E2E8F0"
-                            borderRadius="7px"
-                            p={3}
-                            minH="101px"
-                        >
-                            <Text fontSize="sm" color="gray.600" mb={1}>
-                                Daily average
-                            </Text>
-
-                            <Flex align="baseline" gap={1}>
-                                <Text
-                                    fontSize="2xl"
-                                    fontWeight="700"
-                                    color="gray.800"
-                                    lineHeight="1.3"
-                                >
-                                    {summary?.daily_average ?? 0}
-                                </Text>
-
-                                <Text fontSize="sm" color="gray.500">
-                                    g
-                                </Text>
-                            </Flex>
-
-                            <Badge
-                                colorPalette={
-                                    (summary?.daily_average ?? 0) >
-                                        (summary?.daily_threshold ?? 60)
-                                        ? "red"
-                                        : "green"
-                                }
-                                variant="subtle"
-                                borderRadius="full"
-                                px={2}
-                                py={1}
-                                fontSize="xs"
-                                mt={1}
-                            >
-                                {(summary?.daily_average ?? 0) >
-                                    (summary?.daily_threshold ?? 60)
-                                    ? "⚠ Above threshold"
-                                    : "✓ Within threshold"}
-                            </Badge>
-
-                            <Text fontSize="xs" color="gray.500" mt={1}>
-                                Daily threshold {summary?.daily_threshold} g
-                            </Text>
-                        </Box>
-
-                        {/* DAYS ABOVE THRESHOLD */}
-                        <Box
-                            bg="white"
-                            border={
-                                (summary?.days_above_threshold ?? 0) > 0
-                                    ? "1px solid #DC6B6B"
-                                    : "1px solid #E2E8F0"
-                            }
-                            borderRadius="7px"
-                            p={3}
-                            minH="101px"
-                        >
-                            <Text fontSize="sm" color="gray.600" mb={1}>
-                                Days above threshold
-                            </Text>
-
-                            <Flex align="baseline" gap={1}>
-                                <Text
-                                    fontSize="2xl"
-                                    fontWeight="700"
-                                    color="gray.800"
-                                    lineHeight="1.3"
-                                >
-                                    {summary?.days_above_threshold ?? 0}
-                                </Text>
-
-                                <Text fontSize="sm" color="gray.500">
-                                    of 7
-                                </Text>
-                            </Flex>
-
-                            <Badge
-                                colorPalette={
-                                    (summary?.days_above_threshold ?? 0) > 0
-                                        ? "red"
-                                        : "green"
-                                }
-                                variant="subtle"
-                                borderRadius="full"
-                                px={2}
-                                py={1}
-                                fontSize="xs"
-                                mt={1}
-                            >
-                                {(summary?.days_above_threshold ?? 0) > 0
-                                    ? "⚠ Above threshold"
-                                    : "✓ Within threshold"}
-                            </Badge>
-                        </Box>
-                    </Box>
-
-                    {/* WEEKLY GRAPH */}
-                    <ThresholdBarGraph
-                        data={weeklyData}
-                        threshold={threshold}
-                        title="Weekly Carbohydrate Intake"
-                        subtitle={`${formatDateRange(
-                            reportData.week_start,
-                            reportData.week_end
-                        )} · Carbohydrates per day (g)`}
-                    />
-
-                    {/* AI ANALYSIS TABLE */}
-                    <Box
-                        bg="white"
-                        border="1px solid #E2E8F0"
-                        borderRadius="9px"
-                        overflow="hidden"
-                        boxShadow="0 1px 2px rgba(0,0,0,0.03)"
-                        mt={5}
-                    >
-                        {/* TABLE HEADER */}
-                        <Box px={4} py={3}>
-                            <Text
-                                fontSize="sm"
-                                fontWeight="700"
-                                color="gray.800"
-                            >
-                                AI analysis results
-                            </Text>
-
-                            <Text fontSize="xs" color="gray.500" mt={1}>
-                                Most recent meals
-                            </Text>
-                        </Box>
-
-                        {/* TABLE */}
-                        <Box overflowX="auto">
-                            <Box
-                                as="table"
-                                w="100%"
-                                minW="650px"
-                                borderCollapse="collapse"
-                            >
-                                <Box as="thead" bg="gray.50">
-                                    <Box as="tr">
-                                        {[
-                                            "DATE AND TIME",
-                                            "MEAL",
-                                            "DETECTED ITEMS",
-                                            "CARBOHYDRATES",
-                                            "STATUS",
-                                        ].map((heading) => (
-                                            <Box
-                                                as="th"
-                                                key={heading}
-                                                textAlign="left"
-                                                px={2}
-                                                py={2}
-                                                fontSize="xs"
-                                                fontWeight="700"
-                                                color="gray.600"
-                                                whiteSpace="nowrap"
-                                            >
-                                                {heading}
-                                            </Box>
-                                        ))}
-                                    </Box>
-                                </Box>
-
-                                <Box as="tbody">
-                                    {meals.length > 0 ? (
-                                        meals.map((item) => {
-                                            const isAbove =
-                                                item.status ===
-                                                "Above threshold";
-
-                                            return (
-                                                <Box
-                                                    as="tr"
-                                                    key={item.id}
-                                                    borderBottom="1px solid #E2E8F0"
-                                                    _last={{
-                                                        borderBottom: "none",
-                                                    }}
-                                                    _hover={{ bg: "gray.50" }}
-                                                >
-                                                    {/* DATE */}
-                                                    <Box
-                                                        as="td"
-                                                        px={2}
-                                                        py={2}
-                                                        fontSize="xs"
-                                                        color="gray.700"
-                                                        whiteSpace="nowrap"
-                                                    >
-                                                        {item.date.replace(
-                                                            /,\s*null$/,
-                                                            ""
-                                                        )}
-                                                    </Box>
-
-                                                    {/* MEAL */}
-                                                    <Box
-                                                        as="td"
-                                                        px={2}
-                                                        py={2}
-                                                        fontSize="xs"
-                                                        color="gray.700"
-                                                    >
-                                                        {item.meal || "-"}
-                                                    </Box>
-
-                                                    {/* DETECTED ITEMS */}
-                                                    <Box
-                                                        as="td"
-                                                        px={2}
-                                                        py={2}
-                                                        fontSize="sm"
-                                                        color="gray.700"
-                                                        maxW="300px"
-                                                    >
-                                                        {item.items || "-"}
-                                                    </Box>
-
-                                                    {/* CARBOHYDRATES */}
-                                                    <Box
-                                                        as="td"
-                                                        px={2}
-                                                        py={2}
-                                                        fontSize="sm"
-                                                        color="gray.700"
-                                                        whiteSpace="nowrap"
-                                                        textAlign="center"
-                                                    >
-                                                        {item.carbohydrates} g
-                                                    </Box>
-
-                                                    {/* STATUS */}
-                                                    <Box
-                                                        as="td"
-                                                        px={2}
-                                                        py={2}
-                                                        whiteSpace="nowrap"
-                                                    >
-                                                        <Badge
-                                                            colorPalette={
-                                                                isAbove
-                                                                    ? "red"
-                                                                    : "green"
-                                                            }
-                                                            variant="subtle"
-                                                            borderRadius="full"
-                                                            px={2}
-                                                            py={1}
-                                                            fontSize="xs"
-                                                        >
-                                                            {isAbove
-                                                                ? "⚠ Above threshold"
-                                                                : "✓ Within threshold"}
-                                                        </Badge>
-                                                    </Box>
-                                                </Box>
-                                            );
-                                        })
-                                    ) : (
-                                        <Box as="tr">
-                                            <Box
-                                                as="td"
-                                                // colSpan={5}
-                                                textAlign="center"
-                                                py={8}
-                                            >
-                                                <Text
-                                                    color="gray.500"
-                                                    fontSize="sm"
-                                                >
-                                                    No meals recorded for this week.
-                                                </Text>
-                                            </Box>
-                                        </Box>
-                                    )}
-                                </Box>
-                            </Box>
-                        </Box>
-                    </Box>
-                </>
+            {!loading && error && (
+                <Text color="red.500" fontSize="sm" mb={4}>
+                    {error}
+                </Text>
             )}
+
+            <Flex direction="column" gap={5} width="100%">
+                {charts?.today && <TodayGlucoseChart chart={charts.today} />}
+                {charts?.whatif && <WhatIfGlucoseChart chart={charts.whatif} />}
+                {charts?.compare && <CompareGlucoseChart chart={charts.compare} />}
+                {charts?.journey && <GlucoseJourneyChart chart={charts.journey} />}
+                {charts?.scatter && <GlucoseCarbsScatterChart chart={charts.scatter} />}
+                {charts?.radar_today && (
+                    <TodayNutritionRadarChart chart={charts.radar_today} />
+                )}
+                {charts?.radar_week && (
+                    <WeeklyNutritionRadarChart chart={charts?.radar_week} />
+                )}
+            </Flex>
+
+
         </Box>
     );
 };
