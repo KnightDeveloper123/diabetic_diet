@@ -113,6 +113,24 @@ const formatXAxisDate = (value: string | number) => {
     return `${formattedDate} ${formattedTime}`;
 };
 
+const CustomXAxisTick = (props: any) => {
+    const { x, y, payload } = props;
+
+    return (
+        <text
+            x={x}
+            y={y}
+            dy={10}
+            textAnchor="end"
+            transform={`rotate(-20, ${x}, ${y})`}
+            fontSize={5}
+            fill="#718096"
+        >
+            {formatXAxisDate(payload.value)}
+        </text>
+    );
+};
+
 const toNumberArray = (value?: NumericArray): Array<number | null> => {
     return decodeTypedArray(value);
 };
@@ -216,7 +234,7 @@ const GlucoseLineChart = ({ chart, title, height = 360 }: ChartProps) => {
                     <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={rows} margin={{ top: 18, right: 20, left: 8, bottom: 35 }}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
-                            <XAxis dataKey="x" tick={{ fontSize: 10 }} tickFormatter={formatXAxisDate} minTickGap={24} angle={-20} textAnchor="end" label={{ value: xTitle, position: "insideBottom", offset: -25, fontSize: 11 }} />
+                            <XAxis dataKey="x"  tick={<CustomXAxisTick />} minTickGap={24} angle={-20} textAnchor="end" label={{ value: xTitle, position: "insideBottom", offset: -25, fontSize: 11 }} />
                             <YAxis domain={chart?.layout?.yaxis?.range || ["auto", "auto"]} tick={{ fontSize: 11 }} label={{ value: yTitle, angle: -90, position: "insideLeft", fontSize: 11 }} />
                             <Tooltip />
                             <Legend verticalAlign="top" wrapperStyle={{ fontSize: 11 }} />
