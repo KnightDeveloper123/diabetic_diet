@@ -18,7 +18,7 @@ import { FiEye, FiEyeOff } from "react-icons/fi";
 import { useForm } from "react-hook-form";
 import { Link as RouterLink } from "react-router-dom";
 
-import loginImage from "../../../assets/Login.png";
+import loginImage from "../../../assets/login.png";
 
 interface RegisterForm {
     fullName: string;
