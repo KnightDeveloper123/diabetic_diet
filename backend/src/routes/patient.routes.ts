@@ -468,7 +468,7 @@ router.put("/edit-profile", middleware, async (req, res) => {
 
     // Fetch updated profile
     const updatedUser = await executeQuery(
-      `SELECT id, name, email, phone, address, role
+      `SELECT id, name, email, phone, address
        FROM user
        WHERE id = ?`,
       [id]

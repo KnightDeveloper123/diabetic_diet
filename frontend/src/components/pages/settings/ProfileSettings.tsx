@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
     Box,
     Button,
@@ -9,24 +9,37 @@ import {
     Text,
 } from "@chakra-ui/react";
 import { IoWarningOutline } from "react-icons/io5";
+import useFetch from "../../hooks/uesFetch";
+import { useAuth } from "../../context/AuthContext";
 
 interface ProfileForm {
+    // id: string;
     name: string;
     email: string;
     phone: string;
-    doctorName: string;
+    doctor_id: string;
     address: string;
+    doctor_name: string
 }
 
-const initialProfile: ProfileForm = {
-    name: "",
-    email: "",
-    phone: "",
-    doctorName: "Dr. Ananya Rao",
-    address: "",
-};
+
+
 
 const ProfileSettings = () => {
+
+    const { loading, request } = useFetch();
+    const { user,setUser } = useAuth()
+
+    const initialProfile: ProfileForm = {
+
+        name: user?.name ?? "",
+        email: user?.email ?? "",
+        phone: user?.phone ?? "",
+        doctor_id: String(user?.doctor_id ?? ""),
+        doctor_name: user?.doctor_name ?? "",
+        address: user?.address ?? "",
+    };
+
     const [profile, setProfile] = useState<ProfileForm>(initialProfile);
     const [savedProfile, setSavedProfile] =
         useState<ProfileForm>(initialProfile);
@@ -48,16 +61,61 @@ const ProfileSettings = () => {
         setProfile(savedProfile);
     };
 
-    const handleSave = () => {
-        setSavedProfile(profile);
-        // Connect your profile update API here.
+    useEffect(() => {
+        if (!user) return;
+
+        const updatedProfile: ProfileForm = {
+
+            name: user.name ?? "",
+            email: user.email ?? "",
+            phone: user.phone ?? "",
+            doctor_id: String(user.doctor_id ?? ""),
+            doctor_name: user.doctor_name ?? "",
+            address: user.address ?? "",
+        };
+
+        setProfile(updatedProfile);
+        setSavedProfile(updatedProfile);
+    }, [user]);
+
+    const handleSave = async () => {
+        try {
+            const response = await request({
+                url: "/api/health/edit-profile",
+                method: "PUT",
+                body: { ...profile, id: user?.id ?? "" },
+                withLoader: true,
+            });
+
+            // Update the saved profile only after a successful API response.
+            if (response?.status === 1) {
+                setSavedProfile({ ...profile });
+                setUser((prev) =>
+                    prev
+                        ? {
+                            ...prev,
+                            name: profile.name,
+                            phone: profile.phone,
+                            address: profile.address,
+                            email: profile.email,
+                            doctor_id: profile.doctor_id,
+                            doctor_name: profile.doctor_name,
+                        }
+                        : prev
+                );
+                // alert("Profile updated successfully!");
+            }
+        } catch (error) {
+            console.error("Error updating profile:", error);
+        }
     };
 
     const renderField = (
         label: string,
         field: keyof ProfileForm,
         placeholder: string,
-        type = "text"
+        type = "text",
+        disabled = false
     ) => (
         <Box>
             <Text
@@ -73,15 +131,14 @@ const ProfileSettings = () => {
             <Input
                 type={type}
                 value={profile[field]}
-                onChange={(e) =>
-                    handleChange(field, e.target.value)
-                }
+                onChange={(e) => handleChange(field, e.target.value)}
                 placeholder={placeholder}
+                disabled={disabled}
                 h="44px"
                 border="1px solid #CBD5E1"
                 borderRadius="7px"
                 fontSize="14px"
-                bg="white"
+                bg={disabled ? "#F1F5F9" : "white"}
                 color="#1E293B"
                 _placeholder={{ color: "#94A3B8" }}
                 _focus={{
@@ -194,7 +251,8 @@ const ProfileSettings = () => {
                             "Email",
                             "email",
                             "Enter your email address",
-                            "email"
+                            "email",
+                            true
                         )}
 
                         {renderField(
@@ -206,8 +264,10 @@ const ProfileSettings = () => {
 
                         {renderField(
                             "Doctor Name",
-                            "doctorName",
-                            "Enter doctor name"
+                            "doctor_name",
+                            "Enter doctor name",
+                            "text",
+                            true
                         )}
 
                         <Box gridColumn={{ base: "auto", md: "1 / -1" }}>
@@ -226,7 +286,7 @@ const ProfileSettings = () => {
                                     handleChange("address", e.target.value)
                                 }
                                 placeholder="Enter your address"
-                                h="100px"
+                                // h="100px"
                                 border="1px solid #CBD5E1"
                                 borderRadius="7px"
                                 fontSize="14px"
@@ -258,6 +318,7 @@ const ProfileSettings = () => {
                         borderRadius="7px"
                         h="40px"
                         onClick={handleCancel}
+                        disabled={!hasUnsavedChanges || loading}
                     >
                         Cancel
                     </Button>
@@ -269,10 +330,11 @@ const ProfileSettings = () => {
                         h="40px"
                         px={5}
                         onClick={handleSave}
+                        loading={loading}
+                        disabled={!hasUnsavedChanges || loading}
                         _hover={{ bg: "#2160C4" }}
-                    // disabled={!hasUnsavedChanges}
                     >
-                        Save Changes
+                        Save
                     </Button>
                 </Flex>
             </Box>

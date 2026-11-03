@@ -15,10 +15,11 @@ import type {
 
 interface AuthContextType {
   user: AuthUser | null;
+  setUser: React.Dispatch<React.SetStateAction<AuthUser | null>>;
   token: string | null;
   isAuthenticated: boolean;
   login: (data: LoginResponse) => void;
-  logout: () => void;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(
@@ -63,14 +64,44 @@ export function AuthProvider({
     return sessionStorage.getItem("auth_token");
   });
 
-  // Logout
-  const logout = useCallback(() => {
-    sessionStorage.removeItem("auth_user");
-    sessionStorage.removeItem("auth_token");
+  // Logout API
+  const logout = useCallback(async (): Promise<void> => {
+    const authToken =
+      token || sessionStorage.getItem("auth_token");
 
-    setUser(null);
-    setToken(null);
-  }, []);
+    try {
+      if (authToken) {
+        const response = await fetch(
+          `${import.meta.env.VITE_BACKEND_URL}/api/auth/logout`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${authToken}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok || result.status !== 1) {
+          console.error(
+            "Logout API failed:",
+            result.message
+          );
+        }
+      }
+    } catch (error) {
+      console.error("Logout API error:", error);
+    } finally {
+      // Clear local session
+      sessionStorage.removeItem("auth_user");
+      sessionStorage.removeItem("auth_token");
+
+      setUser(null);
+      setToken(null);
+    }
+  }, [token]);
 
   // Login
   const login = (response: LoginResponse) => {
@@ -132,6 +163,7 @@ export function AuthProvider({
     <AuthContext.Provider
       value={{
         user,
+        setUser,
         token,
         isAuthenticated,
         login,

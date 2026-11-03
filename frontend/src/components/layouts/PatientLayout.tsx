@@ -1,43 +1,54 @@
+import {
+  Box,
+  Flex,
+  Heading,
+  // Button,
+  Text,
+} from "@chakra-ui/react";
 
-import { Box, Flex, Heading, Button, Text } from "@chakra-ui/react";
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet, } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import Sidebar from "../../../src/menu/Sidebar";
+
+import Sidebar, {
+  MobileSidebar,
+} from "../../../src/menu/Sidebar";
 
 function PatientLayout() {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
+  const { user } = useAuth();
+  // const navigate = useNavigate();
 
-  const handleLogout = () => {
-    logout();
-    navigate("/login", { replace: true });
-  };
+
 
   return (
-    <Flex minH="100vh" bg="gray.50">
-      {/* Desktop sidebar */}
+    <Box minH="100vh" bg="gray.50" >
+
+      {/* Fixed Desktop Sidebar */}
       <Sidebar />
 
-      {/* Main content */}
-      <Flex direction="column" flex="1" minW="0">
-        {/* Responsive header */}
+      {/* Main Area */}
+      <Box
+        ml={{ base: "0", md: "240px" }}
+        minH="100vh"
+      >
+        {/* Fixed Navbar */}
         <Flex
+          position="fixed"
+          top="0"
+          left={{ base: "0", md: "240px" }}
+          right="0"
+          h="64px"
           bg="white"
           px={{ base: 3, md: 5 }}
-          py={3}
           justify="space-between"
           align="center"
           gap={2}
           borderBottomWidth="1px"
           borderColor="gray.200"
-          h="64px"
-          position="sticky"
-          top="0"
-          zIndex="10"
+          zIndex="15"
         >
-          <Flex align="center" gap={{ base: 1, md: 3 }} minW="0">
-            {/* Mobile drawer trigger */}
-            {/* <MobileSidebar /> */}
+          {/* Left Side */}
+          <Flex align="center" gap={2} minW="0">
+            <MobileSidebar />
 
             <Heading
               size={{ base: "sm", md: "md" }}
@@ -48,40 +59,40 @@ function PatientLayout() {
             </Heading>
           </Flex>
 
-          <Flex align="center" gap={{ base: 2, md: 3 }} flexShrink="0">
+          {/* Right Side */}
+          <Flex align="center" gap={3} flexShrink="0">
+            {/* <Avatr */}
             <Text
               display={{ base: "none", sm: "block" }}
               fontSize="sm"
               color="gray.600"
-              maxW="140px"
-              truncate
             >
               {user?.name}
             </Text>
 
-            <Button
+            {/* <Button
               onClick={handleLogout}
               size="sm"
               colorPalette="blue"
               variant="outline"
             >
               Logout
-            </Button>
+            </Button> */}
           </Flex>
         </Flex>
 
-        {/* Page content */}
+        {/* Page Content */}
         <Box
+          pt="64px"
           p={{ base: 3, sm: 4, md: 6 }}
-          flex="1"
+          mt="64px"
+          minH="100vh"
           minW="0"
-          overflowY={'auto'}
-          h={'calc(100vh - 64px)'}
         >
           <Outlet />
         </Box>
-      </Flex>
-    </Flex>
+      </Box>
+    </Box>
   );
 }
 

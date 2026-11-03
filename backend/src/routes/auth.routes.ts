@@ -71,7 +71,7 @@ router.post("/user_register", async (req, res) => {
       role,
     ]);
 
-    
+
 
     return res.status(201).json({
       status: 1,
@@ -117,13 +117,13 @@ router.post("/register", async (req, res) => {
       });
     }
 
-     if (role === "patient" && !doctor_id) {
-        res.status(400).json({
-          status: 0,
-          message: "Doctor is required for patient",
-        });
-        return;
-      }
+    if (role === "patient" && !doctor_id) {
+      res.status(400).json({
+        status: 0,
+        message: "Doctor is required for patient",
+      });
+      return;
+    }
 
     // hash password
     const secPass = await bcrypt.hash(password, 10);
@@ -155,8 +155,8 @@ router.post("/register", async (req, res) => {
       address,
       role,
     ]);
-     if (role === "patient") {
-            const patientQuery = `
+    if (role === "patient") {
+      const patientQuery = `
                         INSERT INTO patient
                         (
                             id,
@@ -165,14 +165,14 @@ router.post("/register", async (req, res) => {
                         )
                         VALUES (?, ?, ?)
                     `;
-    
-            await executeQuery(patientQuery, [
-              generateUUID(),
-              generateId,
-              doctor_id,
-            ]);
-          }
-    
+
+      await executeQuery(patientQuery, [
+        generateUUID(),
+        generateId,
+        doctor_id,
+      ]);
+    }
+
 
     return res.status(201).json({
       status: 1,
@@ -207,27 +207,39 @@ router.post("/login", async (req, res) => {
 
     if (!email || !password) {
       return res.status(400).json({
-        status:0,
+        status: 0,
         error: "Email and Password are required",
       });
     }
 
     const checkEmployee = await executeQuery(
-      `SELECT *
-        FROM user u
-        WHERE u.email = ?
-        AND u.status = 0
-      `,
+      `SELECT 
+      u.*,
+      d.name AS doctor_name,
+      d.email AS doctor_email,
+      d.phone AS doctor_phone,
+      d.id AS doctor_id
+
+   FROM user u
+
+   LEFT JOIN patient p
+      ON u.id = p.patient_id
+   LEFT JOIN user d
+      ON d.id = p.doctor_id
+
+   WHERE u.email = ?
+     AND u.status = 0
+  `,
       [email.trim()]
     );
-    // console.log("Login query result:", checkEmployee[0]);
+    console.log("Login query result:", checkEmployee[0]);
     const user = Array.isArray(checkEmployee)
       ? checkEmployee[0]
       : checkEmployee;
 
     if (!user) {
       return res.status(400).json({
-         status:0,
+        status: 0,
         error: "User not found",
       });
     }
@@ -239,7 +251,7 @@ router.post("/login", async (req, res) => {
 
     if (!pwdCompare) {
       return res.status(400).json({
-         status:0,
+        status: 0,
         error: "Wrong password",
       });
     }
@@ -256,13 +268,18 @@ router.post("/login", async (req, res) => {
     );
 
     return res.status(200).json({
-       status:1,
+      status: 1,
       message: "Login success",
       data: {
         id: user.id,
         name: user.name,
         email: user.email,
-        role: user.role
+        role: user.role,
+        phone: user.phone,
+        address: user.address,
+        doctor_name: user.doctor_name,
+        doctor_id: user.doctor_id
+        // doctor
 
       },
       auth_token,
@@ -280,7 +297,7 @@ router.post("/set-password", async (req, res) => {
   try {
     const { token, password, confirm_password } = req.body;
     if (!token || !password || !confirm_password) {
-      
+
       return res.status(400).json({
         status: 0,
         error: "All fields are required"
@@ -288,7 +305,7 @@ router.post("/set-password", async (req, res) => {
     }
 
     if (password !== confirm_password) {
-      
+
       return res.status(400).json({
         error: "Password and confirm password do not match"
       });
@@ -338,7 +355,7 @@ router.post("/set-password", async (req, res) => {
         employee[0].id
       ]
     );
-    
+
     return res.status(200).json({
       status: 1,
       success:
@@ -368,7 +385,7 @@ router.post(
         return;
       }
 
-    
+
 
       // Check whether the user exists
       const [user] = await executeQuery(
@@ -457,51 +474,44 @@ router.post("/reset-password", async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     await executeQuery(`UPDATE user SET password = ? WHERE id = ?`, [hashedPassword, id]);
-    
+
     return res.json({ status: 1, success: "Password has been reset successfully." });
   } catch (error) {
     console.error("Error in user/reset-password:", error);
-    
+
     return res.status(500).json({ status: 1, error: "Internal server error." });
   }
 });
 
 router.post("/logout", middleware, async (req, res) => {
-
   try {
-
     const authHeader = req.headers.authorization;
 
-    if (!authHeader) {
-
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return res.status(401).json({
         status: 0,
-        message: "Token required"
+        message: "Valid token required",
       });
     }
 
     const token = authHeader.split(" ")[1];
 
     await executeQuery(
-      `
-            INSERT INTO blacklisted_tokens (token)
-            VALUES (?)
-            `,
+      `INSERT INTO blacklisted_tokens (token) VALUES (?)`,
       [token]
     );
 
     return res.status(200).json({
       status: 1,
-      message: "Logout successful"
+      message: "Logout successful",
     });
 
   } catch (error) {
-
-    console.log(error);
+    console.error("Logout error:", error);
 
     return res.status(500).json({
       status: 0,
-      message: "error"
+      message: "Logout failed",
     });
   }
 });

@@ -14,6 +14,10 @@ export interface AuthUser {
   id: number | string;
   name: string;
   email: string;
+  phone: string;
+  address: string;
+  doctor_id: string;
+  doctor_name: string;
   role: UserRole;
 }
 
