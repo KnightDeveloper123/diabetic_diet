@@ -237,7 +237,21 @@ const GlucoseLineChart = ({ chart, title, height = 360 }: ChartProps) => {
                             <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
                             <XAxis dataKey="x" tick={<CustomXAxisTick />} minTickGap={24} angle={-20} textAnchor="end" label={{ value: xTitle, position: "insideBottom", offset: -25, fontSize: 11 }} />
                             <YAxis domain={chart?.layout?.yaxis?.range || ["auto", "auto"]} tick={{ fontSize: 11 }} label={{ value: yTitle, angle: -90, position: "insideLeft", fontSize: 11 }} />
-                            <Tooltip />
+                            <Tooltip labelFormatter={(label) =>
+                                formatXAxisDate(label as string | number)
+                            }
+                                contentStyle={{
+                                    fontSize: "12px",
+                                    borderRadius: "8px",
+                                }}
+                                labelStyle={{
+                                    fontSize: "12px",
+                                    fontWeight: 600,
+                                }}
+                                formatter={(value, name) => [
+                                    `${value} mg/dL`,
+                                    name,
+                                ]} />
                             <Legend verticalAlign="top" wrapperStyle={{ fontSize: 11 }} />
                             <ReferenceArea y1={70} y2={180} fill="#48BB78" fillOpacity={0.10} />
                             <ReferenceLine y={180} stroke="#E53E3E" strokeDasharray="6 5" />
