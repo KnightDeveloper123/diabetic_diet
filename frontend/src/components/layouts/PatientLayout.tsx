@@ -1,4 +1,6 @@
 import {
+  Avatar,
+  AvatarGroup,
   Box,
   Flex,
   Heading,
@@ -62,13 +64,33 @@ function PatientLayout() {
           {/* Right Side */}
           <Flex align="center" gap={3} flexShrink="0">
             {/* <Avatr */}
-            <Text
+            <Flex justifyContent={'space-between'} align={'center'} gap={2}>
+              <Box>
+                <AvatarGroup >
+                  <Avatar.Root size={'sm'}>
+                    <Avatar.Fallback name={user?.name} />
+                  </Avatar.Root>
+                </AvatarGroup>
+              </Box>
+                <Box>
+                  <Text
               display={{ base: "none", sm: "block" }}
               fontSize="sm"
               color="gray.600"
             >
               {user?.name}
             </Text>
+            <Text
+              display={{ base: "none", sm: "block" }}
+              fontSize="sm"
+              color="gray.600"
+            >
+              {user?.role}
+            </Text>
+                </Box>
+
+            </Flex>
+            
 
             {/* <Button
               onClick={handleLogout}
