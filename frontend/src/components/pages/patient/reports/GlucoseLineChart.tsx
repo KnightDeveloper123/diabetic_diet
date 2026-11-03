@@ -39,58 +39,127 @@ interface ChartProps {
     height?: number;
 }
 
-/** Decode Plotly's base64 typed-array representation if the API sends one. */
-const toNumberArray = (
-    value?: Array<number | null> | { dtype?: string; bdata?: string }
+
+const COLORS = ["#3182CE", "#E53E3E", "#38A169", "#805AD5", "#DD6B20"];
+
+type NumericArray =
+    | Array<number | null>
+    | { dtype?: string; bdata?: string };
+
+const decodeTypedArray = (
+    value?: NumericArray
 ): Array<number | null> => {
-    if (Array.isArray(value)) return value.map((v) => (v == null ? null : Number(v)));
+    if (Array.isArray(value)) {
+        return value.map((v) => v == null ? null : Number(v));
+    }
+
     if (!value?.bdata || typeof window === "undefined") return [];
 
     try {
         const binary = window.atob(value.bdata);
         const bytes = new Uint8Array(binary.length);
-        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
 
-        const dtype = value.dtype || "f8";
+        for (let i = 0; i < binary.length; i++) {
+            bytes[i] = binary.charCodeAt(i);
+        }
+
         const view = new DataView(bytes.buffer);
-        const bytesPerValue = dtype.endsWith("4") ? 4 : 8;
+
+        const readers: Record<string, { size: number; read: (v: DataView, o: number) => number }> = {
+            f8: { size: 8, read: (v, o) => v.getFloat64(o, true) },
+            f4: { size: 4, read: (v, o) => v.getFloat32(o, true) },
+            i4: { size: 4, read: (v, o) => v.getInt32(o, true) },
+            u4: { size: 4, read: (v, o) => v.getUint32(o, true) },
+            i2: { size: 2, read: (v, o) => v.getInt16(o, true) },
+            u2: { size: 2, read: (v, o) => v.getUint16(o, true) },
+            i1: { size: 1, read: (v, o) => v.getInt8(o) },
+            u1: { size: 1, read: (v, o) => v.getUint8(o) },
+        };
+
+        const reader = readers[value.dtype || "f8"];
+
+        if (!reader) return [];
+
         const result: number[] = [];
 
-        for (let offset = 0; offset + bytesPerValue <= bytes.byteLength; offset += bytesPerValue) {
-            result.push(
-                bytesPerValue === 4
-                    ? view.getFloat32(offset, true)
-                    : view.getFloat64(offset, true)
-            );
+        for (let offset = 0; offset + reader.size <= bytes.byteLength; offset += reader.size) {
+            result.push(reader.read(view, offset));
         }
+
         return result;
-    } catch {
+    } catch (error) {
+        console.error("Typed array decoding error:", error);
         return [];
     }
 };
 
-const COLORS = ["#3182CE", "#E53E3E", "#38A169", "#805AD5", "#DD6B20"];
+const formatXAxisDate = (value: string | number) => {
+    const date = new Date(value);
+
+    if (isNaN(date.getTime())) return String(value);
+
+    const formattedDate = date.toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+    }).replace(/ /g, "-");
+
+    const formattedTime = date.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+    });
+
+    return `${formattedDate} ${formattedTime}`;
+};
+
+const toNumberArray = (value?: NumericArray): Array<number | null> => {
+    return decodeTypedArray(value);
+};
 
 const makeSeriesRows = (chart?: PythonPlotChart | null) => {
     const traces = chart?.data || [];
-    if (!traces.length) return { rows: [], series: [] as Array<{ key: string; name: string; color: string }> };
+
+    if (!traces.length) {
+        return {
+            rows: [],
+            series: [] as Array<{
+                key: string;
+                name: string;
+                color: string;
+            }>,
+        };
+    }
 
     const normalized = traces
         .filter((trace) => trace.type !== "scatterpolar" && trace.x)
         .map((trace, index) => {
-            const xValues = Array.isArray(trace.x) ? trace.x : [];
+            // Preserve normal string/date arrays.
+            // Decode only Plotly's encoded typed arrays.
+            const xValues = Array.isArray(trace.x)
+                ? trace.x
+                : decodeTypedArray(trace.x as NumericArray);
+
             const yValues = toNumberArray(trace.y);
+
             return {
                 name: trace.name || `Series ${index + 1}`,
                 color: trace.line?.color || COLORS[index % COLORS.length],
                 points: xValues.map((x, pointIndex) => ({
                     x: String(x),
-                    y: yValues[pointIndex] == null ? null : Number(yValues[pointIndex]),
+                    y: yValues[pointIndex] ?? null,
                 })),
             };
         });
 
-    const xLabels = Array.from(new Set(normalized.flatMap((item) => item.points.map((p) => p.x))));
+    const xLabels = Array.from(
+        new Set(
+            normalized.flatMap((item) =>
+                item.points.map((point) => point.x)
+            )
+        )
+    );
+
     const series = normalized.map((item, index) => ({
         key: `series${index}`,
         name: item.name,
@@ -99,9 +168,12 @@ const makeSeriesRows = (chart?: PythonPlotChart | null) => {
 
     const rows = xLabels.map((x) => {
         const row: Record<string, string | number | null> = { x };
+
         normalized.forEach((item, index) => {
-            row[`series${index}`] = item.points.find((point) => point.x === x)?.y ?? null;
+            row[`series${index}`] =
+                item.points.find((point) => point.x === x)?.y ?? null;
         });
+
         return row;
     });
 
@@ -144,7 +216,7 @@ const GlucoseLineChart = ({ chart, title, height = 360 }: ChartProps) => {
                     <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={rows} margin={{ top: 18, right: 20, left: 8, bottom: 35 }}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
-                            <XAxis dataKey="x" tick={{ fontSize: 10 }} minTickGap={24} angle={-20} textAnchor="end" label={{ value: xTitle, position: "insideBottom", offset: -25, fontSize: 11 }} />
+                            <XAxis dataKey="x" tick={{ fontSize: 10 }} tickFormatter={formatXAxisDate} minTickGap={24} angle={-20} textAnchor="end" label={{ value: xTitle, position: "insideBottom", offset: -25, fontSize: 11 }} />
                             <YAxis domain={chart?.layout?.yaxis?.range || ["auto", "auto"]} tick={{ fontSize: 11 }} label={{ value: yTitle, angle: -90, position: "insideLeft", fontSize: 11 }} />
                             <Tooltip />
                             <Legend verticalAlign="top" wrapperStyle={{ fontSize: 11 }} />
@@ -169,28 +241,40 @@ export const TodayGlucoseChart = ({ chart }: { chart?: PythonPlotChart | null })
 //     <GlucoseLineChart chart={chart} title="What-if glucose comparison" />
 // );
 
+
 export const WhatIfGlucoseChart = ({
     chart,
 }: {
     chart?: PythonPlotChart | null;
 }) => {
-    const convertedChart = useMemo(
-        () => ({
+    const convertedChart = useMemo(() => {
+        if (!chart) return null;
+
+        const convertedData = (chart.data ?? [])
+            .filter((trace) => trace.mode !== "markers")
+            .map((trace) => ({
+                ...trace,
+                x: decodeTypedArray(trace.x as NumericArray).map(
+                    (value) => value ?? 0
+                ),
+                y: toNumberArray(trace.y),
+            }));
+
+        return {
             ...chart,
-            data: chart?.data?.filter(
-                (trace) => trace.mode !== "markers"
-            ) ?? [],
-        }),
-        [chart]
-    );
+            data: convertedData,
+        };
+    }, [chart]);
 
     return (
         <GlucoseLineChart
             chart={convertedChart}
             title="What-if glucose comparison"
+            height={430}
         />
     );
 };
+
 
 export const CompareGlucoseChart = ({ chart }: { chart?: PythonPlotChart | null }) => (
     <GlucoseLineChart chart={chart} title="Selected day vs usual day" />
