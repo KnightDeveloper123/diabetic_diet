@@ -72,11 +72,11 @@ const Reports = () => {
             const payload = response?.data ?? response;
 
             setReportData(payload);
-            console.log("Reports API payload:", payload);
-            console.log(
-                "Python charts:",
-                payload?.pythonCharts?.charts ?? payload?.charts
-            );
+            // console.log("Reports API payload:", payload);
+            // console.log(
+            //     "Python charts:",
+            //     payload?.pythonCharts?.charts ?? payload?.charts
+            // );
         } catch (err) {
             console.error("Reports API Error:", err);
             setReportData(null);
@@ -99,6 +99,12 @@ const Reports = () => {
     //         (chart) => chart && Array.isArray(chart.data) && chart.data.length > 0
     //     )
     // );
+// console.log(reportData)
+    const hasChartData = (chart?: PythonPlotChart | null) => {
+        // console.log(chart?.data)
+        return Array.isArray(chart?.data) && chart.data.length > 0;
+    };
+    
 
     return (
         <Box minH="100vh">
@@ -145,16 +151,32 @@ const Reports = () => {
             )}
 
             <Flex direction="column" gap={5} width="100%">
-                {charts?.today && <TodayGlucoseChart chart={charts.today} />}
-                {charts?.whatif && <WhatIfGlucoseChart chart={charts.whatif} />}
-                {charts?.compare && <CompareGlucoseChart chart={charts.compare} />}
-                {charts?.journey && <GlucoseJourneyChart chart={charts.journey} />}
-                {charts?.scatter && <GlucoseCarbsScatterChart chart={charts.scatter} />}
-                {charts?.radar_today && (
-                    <TodayNutritionRadarChart chart={charts.radar_today} />
+                {hasChartData(charts?.today) && (
+                    <TodayGlucoseChart chart={charts!.today!} />
                 )}
-                {charts?.radar_week && (
-                    <WeeklyNutritionRadarChart chart={charts?.radar_week} />
+
+                {hasChartData(charts?.whatif) && (
+                    <WhatIfGlucoseChart chart={charts!.whatif!} />
+                )}
+
+                {hasChartData(charts?.compare) && (
+                    <CompareGlucoseChart chart={charts!.compare!} />
+                )}
+
+                {hasChartData(charts?.journey) && (
+                    <GlucoseJourneyChart chart={charts!.journey!} />
+                )}
+
+                {hasChartData(charts?.scatter) && (
+                    <GlucoseCarbsScatterChart chart={charts!.scatter!} />
+                )}
+
+                {hasChartData(charts?.radar_today) && (
+                    <TodayNutritionRadarChart chart={charts!.radar_today!} />
+                )}
+
+                {hasChartData(charts?.radar_week) && (
+                    <WeeklyNutritionRadarChart chart={charts!.radar_week!} />
                 )}
             </Flex>
 

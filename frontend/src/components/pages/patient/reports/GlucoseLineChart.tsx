@@ -127,8 +127,12 @@ const EmptyChart = ({ chart, height }: { chart?: PythonPlotChart | null; height:
 };
 
 const GlucoseLineChart = ({ chart, title, height = 360 }: ChartProps) => {
+    console.log(chart)
     const { rows, series } = useMemo(() => makeSeriesRows(chart), [chart]);
     const hasData = rows.length > 0 && series.length > 0;
+
+    console.log("Chart data:", chart?.data);
+    console.log("Converted chart rows:", makeSeriesRows(chart));
 
     const yTitle = chart?.layout?.yaxis?.title?.text || "Estimated glucose (mg/dL)";
     const xTitle = chart?.layout?.xaxis?.title?.text || "Time";
@@ -161,9 +165,32 @@ export const TodayGlucoseChart = ({ chart }: { chart?: PythonPlotChart | null })
     <GlucoseLineChart chart={chart} title="Estimated glucose throughout the day" />
 );
 
-export const WhatIfGlucoseChart = ({ chart }: { chart?: PythonPlotChart | null }) => (
-    <GlucoseLineChart chart={chart} title="What-if glucose comparison" />
-);
+// export const WhatIfGlucoseChart = ({ chart }: { chart?: PythonPlotChart | null }) => (
+//     <GlucoseLineChart chart={chart} title="What-if glucose comparison" />
+// );
+
+export const WhatIfGlucoseChart = ({
+    chart,
+}: {
+    chart?: PythonPlotChart | null;
+}) => {
+    const convertedChart = useMemo(
+        () => ({
+            ...chart,
+            data: chart?.data?.filter(
+                (trace) => trace.mode !== "markers"
+            ) ?? [],
+        }),
+        [chart]
+    );
+
+    return (
+        <GlucoseLineChart
+            chart={convertedChart}
+            title="What-if glucose comparison"
+        />
+    );
+};
 
 export const CompareGlucoseChart = ({ chart }: { chart?: PythonPlotChart | null }) => (
     <GlucoseLineChart chart={chart} title="Selected day vs usual day" />
