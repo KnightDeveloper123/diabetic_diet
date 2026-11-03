@@ -623,283 +623,68 @@ router.get("/graph-data", middleware, async (req, res) => {
 });
 
 
-router.get("/reports", middleware, async (req, res) => {
-    try {
-        const userId = req.query.userId as string | undefined;
-
-        if (!userId) {
-            return res.status(401).json({
-                status: 0,
-                message: "User authentication required",
-            });
-        }
-
-        // --------------------------------
-        // 2. VALIDATE SELECTED DATE
-        // --------------------------------
-
-        const selectedDate = req.query.date as string | undefined;
-
-        if (
-            selectedDate &&
-            !/^\d{4}-\d{2}-\d{2}$/.test(selectedDate)
-        ) {
-            return res.status(400).json({
-                status: 0,
-                message: "Invalid date format. Use YYYY-MM-DD",
-            });
-        }
-
-        const dateResult = await executeQuery(
-            `SELECT DATE_FORMAT(COALESCE(?, CURDATE()), '%Y-%m-%d') AS selected_date`,
-            [selectedDate || null]
-        );
-
-        const date = dateResult[0]?.selected_date;
-
-        if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-            return res.status(400).json({
-                status: 0,
-                message: "Invalid selected date",
-            });
-        }
-
-        // --------------------------------
-        // 3. GET WEEKLY MEAL DATA
-        // --------------------------------
-
-        const weeklyRows = await executeQuery(
-            `
-                SELECT
-                    DATE_FORMAT(date, '%Y-%m-%d') AS meal_date,
-                    SUM(COALESCE(carbs, 0)) AS total_carbohydrates,
-                    COUNT(*) AS total_meals
-                FROM image_calculation
-                WHERE user_id = ?
-                    AND date BETWEEN DATE_SUB(?, INTERVAL 6 DAY) AND ?
-                GROUP BY date
-                ORDER BY date ASC
-                `,
-            [userId, date, date]
-        );
-
-        // Create a local map for each request.
-        const weeklyDataMap = new Map<string, number>();
-
-        weeklyRows.forEach((item: any) => {
-            weeklyDataMap.set(
-                item.meal_date,
-                Number(item.total_carbohydrates) || 0
-            );
-        });
-
-        // --------------------------------
-        // 4. GENERATE ALL 7 DAYS
-        // --------------------------------
-
-        //             console.log("Selected Date:", selectedDate);
-        // console.log("Database Date:", date);
-        // console.log("Date Object:", new Date(`${date}T00:00:00.000Z`));
-
-        const endDate = new Date(`${date}T00:00:00.000Z`);
-
-        if (Number.isNaN(endDate.getTime())) {
-            return res.status(400).json({
-                status: 0,
-                message: "Unable to process selected date",
-            });
-        }
-
-        const weeklyGraph = [];
-
-        for (let i = 6; i >= 0; i--) {
-            const currentDate = new Date(endDate);
-
-            currentDate.setUTCDate(endDate.getUTCDate() - i);
-
-            const dateKey = currentDate.toISOString().slice(0, 10);
-
-            const carbohydrates = weeklyDataMap.get(dateKey) || 0;
-
-            weeklyGraph.push({
-                date: dateKey,
-                day: currentDate.toLocaleDateString("en-US", {
-                    weekday: "short",
-                    timeZone: "UTC",
-                }),
-                value: carbohydrates,
-                carbohydrates,
-                threshold: WEEKLY_THRESHOLD,
-                status:
-                    carbohydrates > WEEKLY_THRESHOLD
-                        ? "Above threshold"
-                        : "Within threshold",
-            });
-        }
-
-        // --------------------------------
-        // 5. REPORT SUMMARY
-        // --------------------------------
-
-        const weeklyTotal = weeklyGraph.reduce(
-            (total, item) =>
-                total + item.carbohydrates,
-            0
-        );
-
-        const weeklyMealCount = await executeQuery(
-            `
-                SELECT COUNT(*) AS total
-                FROM image_calculation
-                WHERE user_id = ?
-                    AND date BETWEEN DATE_SUB(?, INTERVAL 6 DAY) AND ?
-                `,
-            [userId, date, date]
-        );
-
-        const daysAboveThreshold = weeklyGraph.filter(
-            (item) =>
-                item.carbohydrates > WEEKLY_THRESHOLD
-        ).length;
-
-        const summary = {
-            meals_recorded: Number(
-                weeklyMealCount[0]?.total || 0
-            ),
-
-            daily_average: Number(
-                (weeklyTotal / 7).toFixed(2)
-            ),
-
-            days_above_threshold: daysAboveThreshold,
-
-            weekly_total: Number(
-                weeklyTotal.toFixed(2)
-            ),
-
-            daily_threshold: DAILY_THRESHOLD,
-
-            weekly_threshold: WEEKLY_THRESHOLD,
-        };
-
-        // --------------------------------
-        // 6. RECENT MEAL RECORDS
-        // --------------------------------
-
-        const recentMeals = await executeQuery(
-            `
-                SELECT
-                    id,
-
-                    DATE_FORMAT(
-                        date,
-                        '%a %d %b'
-                    ) AS meal_date,
-
-                    DATE_FORMAT(
-                        time,
-                        '%H:%i'
-                    ) AS meal_time,
-
-                    meal_type,
-
-                    food_name,
-
-                    COALESCE(carbs, 0) AS carbohydrates,
-
-                    calories,
-                    protein,
-                    fats,
-                    fiber,
-                    sugar,
-                    risk_level
-
-                FROM image_calculation
-
-                WHERE user_id = ?
-                    AND date BETWEEN DATE_SUB(?, INTERVAL 6 DAY) AND ?
-
-                ORDER BY date DESC, time DESC
-
-                LIMIT 10
-                `,
-            [userId, date, date]
-        );
-
-        const formattedRecentMeals = recentMeals.map(
-            (item: any) => {
-                const carbohydrates =
-                    Number(item.carbohydrates) || 0;
-
-                const isAbove =
-                    carbohydrates > DAILY_THRESHOLD;
-
-                return {
-                    id: item.id,
-
-                    date: `${item.meal_date}, ${item.meal_time}`,
-
-                    meal: item.meal_type,
-
-                    items: item.food_name,
-
-                    carbs: carbohydrates,
-
-                    carbohydrates: carbohydrates,
-
-                    calories: Number(item.calories) || 0,
-
-                    protein: Number(item.protein) || 0,
-
-                    fats: Number(item.fats) || 0,
-
-                    fiber: Number(item.fiber) || 0,
-
-                    sugar: Number(item.sugar) || 0,
-
-                    risk_level: item.risk_level,
-
-                    status: isAbove
-                        ? "Above threshold"
-                        : "Within threshold",
-                };
-            }
-        );
-
-        // --------------------------------
-        // 7. SUCCESS RESPONSE
-        // --------------------------------
-
-        return res.status(200).json({
-            status: 1,
-
-            message: "Report data fetched successfully",
-
-            data: {
-                selected_date: date,
-
-                week_start: weeklyGraph[0]?.date,
-
-                week_end: weeklyGraph[6]?.date,
-
-                summary,
-
-                weekly_graph: weeklyGraph,
-
-                recent_meals: formattedRecentMeals,
-            },
-        });
-
-    } catch (error) {
-        console.error("Report API Error:", error);
-
-        return res.status(500).json({
+router.get("/reports", async (req, res) => {
+    const userId = req.query.userId as string | undefined;
+    const date = req.query.date as string | undefined;
+
+    console.log("User ID:", userId);
+    console.log("Date:", date);
+
+    if (!userId) {
+        return res.status(401).json({
             status: 0,
-            message: "Internal server error",
+            message: "User ID required",
         });
     }
-}
-);
+
+    let pythonCharts = null;
+
+    try {
+
+        const pythonUrl =
+            `${process.env.PYTHON_API_URL}/charts` +
+            `?day=${encodeURIComponent(date || "")}` +
+            `&user_id=${encodeURIComponent(userId)}` +
+            `&report_days=7`;
+
+        console.log("Python API URL:", pythonUrl);
+
+        const pythonResponse = await fetch(pythonUrl, {
+            method: "GET",
+            headers: {
+                Accept: "application/json",
+            },
+            signal: AbortSignal.timeout(30000),
+        });
+
+        const responseText = await pythonResponse.text();
+
+        if (!pythonResponse.ok) {
+            console.error("Python API Error:", {
+                status: pythonResponse.status,
+                body: responseText,
+            });
+
+            throw new Error(
+                `Python API failed: ${pythonResponse.status}`
+            );
+        }
+
+        pythonCharts = JSON.parse(responseText);
+
+    } catch (pythonError) {
+        console.error("Python Charts API Error:", pythonError);
+        pythonCharts = null;
+    }
+
+    // IMPORTANT: Send response to frontend
+    return res.status(200).json({
+        status: 1,
+        message: "Reports fetched successfully",
+        data: {pythonCharts},
+    });
+});
+
 
 
 
