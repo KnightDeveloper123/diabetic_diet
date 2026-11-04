@@ -7,6 +7,7 @@ import { CompareGlucoseChart, GlucoseCarbsScatterChart, GlucoseJourneyChart, Tod
 interface ReportCharts {
     today?: PythonPlotChart;
     whatif?: PythonPlotChart;
+    report?: string;
     compare?: PythonPlotChart;
     journey?: PythonPlotChart;
     scatter?: PythonPlotChart;
@@ -17,6 +18,7 @@ interface ReportCharts {
 interface PythonChartsResponse {
     user?: string;
     whatif_text?: string;
+    report?: string;
     charts?: ReportCharts;
 }
 
@@ -28,6 +30,7 @@ interface ReportData {
     // Supports an API that returns the Python response directly.
     user?: string;
     whatif_text?: string;
+    report?: string;
     charts?: ReportCharts;
 }
 
@@ -87,9 +90,7 @@ const Reports = () => {
         fetchReports();
     }, [fetchReports]);
 
-    const pythonCharts =
-        reportData?.pythonCharts ??
-        (reportData?.charts ? reportData : undefined);
+    const pythonCharts = reportData?.pythonCharts ?? (reportData?.charts ? reportData : undefined);
 
     const charts = pythonCharts?.charts;
 
@@ -99,12 +100,14 @@ const Reports = () => {
     //         (chart) => chart && Array.isArray(chart.data) && chart.data.length > 0
     //     )
     // );
-// console.log(reportData)
+    // console.log(reportData)
     const hasChartData = (chart?: PythonPlotChart | null) => {
         // console.log(chart?.data)
         return Array.isArray(chart?.data) && chart.data.length > 0;
     };
-    
+
+    const reportText = reportData?.pythonCharts?.report ?? reportData?.report ?? "";
+
 
     return (
         <Box minH="100vh">
@@ -151,6 +154,51 @@ const Reports = () => {
             )}
 
             <Flex direction="column" gap={5} width="100%">
+
+                {reportText && (
+                    <Box
+                        bg="white"
+                        border="1px solid"
+                        borderColor="gray.200"
+                        borderRadius="xl"
+                        p={{ base: 4, md: 6 }}
+                        mt={2}
+                        boxShadow="sm"
+                    >
+                        <Text fontSize="lg" fontWeight="700" color="gray.800" mb={4}>
+                            Patient Report
+                        </Text>
+
+                        {reportText.split("\n\n").map((section, index) => {
+                            const lines = section.trim().split("\n");
+                            const heading = lines[0];
+                            const content = lines.slice(1).join("\n").trim();
+
+                            return (
+                                <Box key={index} mb={5} _last={{ mb: 0 }}>
+                                    <Text
+                                        fontSize="md"
+                                        fontWeight="700"
+                                        color="teal.700"
+                                        mb={2}
+                                    >
+                                        {heading}
+                                    </Text>
+
+                                    <Text
+                                        fontSize="sm"
+                                        color="gray.600"
+                                        lineHeight="1.8"
+                                        whiteSpace="pre-wrap"
+                                    >
+                                        {content}
+                                    </Text>
+                                </Box>
+                            );
+                        })}
+                    </Box>
+                )}
+
                 {hasChartData(charts?.today) && (
                     <TodayGlucoseChart chart={charts!.today!} />
                 )}
