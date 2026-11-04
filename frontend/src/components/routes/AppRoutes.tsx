@@ -108,7 +108,7 @@ function AppRoutes() {
         {/* Doctor routes */}
         <Route element={<ProtectedRoute allowedRoles={["doctor"]} />}>
           <Route path="/doctor" element={<DoctorLayout />}>
-            <Route index element={<DoctorDashboard />} />
+            <Route index element={<PatientDashboard />} />
             <Route path="patients" element={<Patients />} />
             <Route path="settings" element={<ProfileSettings />} />
           </Route>
