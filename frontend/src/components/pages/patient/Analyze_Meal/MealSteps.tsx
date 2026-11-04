@@ -46,6 +46,8 @@ const nutrition_headers = [
     { name: "Fiber (g)" },
     { name: "Protein (g)" },
     { name: "Fat (g)" },
+    { name: "Cholesterol (mg)" },
+    { name: "Calcium (mg)" },
 ]
 
 interface MealStepsProps {
@@ -734,10 +736,12 @@ const MealSteps = ({
                                             <Table.Row>
                                                 <Table.Cell px={4} py={3}>{analysisResult?.totals?.calories_kcal}</Table.Cell>
                                                 <Table.Cell px={4} py={3}>{analysisResult?.totals?.carbs_g}</Table.Cell>
-                                                <Table.Cell px={4} py={3}>{analysisResult?.totals?.protein_g}</Table.Cell>
-                                                <Table.Cell px={4} py={3}>{analysisResult?.totals?.fat_g}</Table.Cell>
                                                 <Table.Cell px={4} py={3}>{analysisResult?.totals?.sugar_g}</Table.Cell>
                                                 <Table.Cell px={4} py={3}>{analysisResult?.totals?.fiber_g}</Table.Cell>
+                                                <Table.Cell px={4} py={3}>{analysisResult?.totals?.protein_g}</Table.Cell>
+                                                <Table.Cell px={4} py={3}>{analysisResult?.totals?.fat_g}</Table.Cell>
+                                                <Table.Cell px={4} py={3}>{analysisResult?.totals?.cholesterol_mg}</Table.Cell>
+                                                <Table.Cell px={4} py={3}>{analysisResult?.totals?.calcium_mg}</Table.Cell>
                                             </Table.Row>
 
 
