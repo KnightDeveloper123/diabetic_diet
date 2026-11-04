@@ -14,6 +14,8 @@ import CustomTable from "../../../../src/components/reusable/CustomTable";
 import { useNavigate } from "react-router-dom";
 import { usePatient } from "../../context/PatientContext";
 import CustomPagination from "../../reusable/CustomPagination";
+import Icons from "../../utils/Icons";
+import { useAuth } from "../../context/AuthContext";
 
 const Patients = () => {
     const [search, setSearch] = useState("");
@@ -21,12 +23,14 @@ const Patients = () => {
     const limit = 10;
     const navigate = useNavigate();
     const { allPatient, fetchAllPatient, } = usePatient();
-    console.log(allPatient)
+    const { user } =useAuth(); 
+    // console.log(allPatient)
     useEffect(() => {
         fetchAllPatient({
             page: page,
             limit: limit,
-            search: search
+            search: search,
+             doctor_id: user?.role === "doctor" ? user.id : undefined,
         })
     }, [page, limit, search])
 
@@ -91,13 +95,14 @@ const Patients = () => {
         { name: "ACTION" },
     ];
 
-   const afterFunction = useCallback(() => {
-    fetchAllPatient({
-        page,
-        limit,
-        search,
-    });
-}, [page, limit, search, fetchAllPatient]);
+    const afterFunction = useCallback(() => {
+        fetchAllPatient({
+            page,
+            limit,
+            search,
+            doctor_id: user?.role === "doctor" ? user.id : undefined,
+        });
+    }, [page, limit, search, fetchAllPatient]);
     return (
         <Flex
             direction="column"
@@ -297,18 +302,22 @@ const Patients = () => {
                                         {patient.address}
                                     </Table.Cell>
 
-                                    <Table.Cell px={4} py={3} textAlign="right">
+                                    <Table.Cell px={4} py={3} >
+                                        {/* <Button */}
                                         <Button
                                             size="xs"
-                                            variant="outline"
-                                            whiteSpace="nowrap"
+                                            variant="ghost"
+                                            // color="#2160C4"
+                                            // _hover={{ bg: "blue.50" }}
                                             onClick={() =>
                                                 navigate(`/doctor/details/${patient.id}`)
                                             }
+                                            aria-label="View patient details"
                                         >
-                                            View patient
-                                            <LuChevronRight />
+                                            <Icons.View size={18} />
                                         </Button>
+                                        {/* </Button> */}
+
                                     </Table.Cell>
                                 </Table.Row>
                             ))}
@@ -331,8 +340,8 @@ const Patients = () => {
                         limit={limit}
                         setpage={setPage} />
 
+                </Box>
             </Box>
-        </Box>
         </Flex >
     );
 };

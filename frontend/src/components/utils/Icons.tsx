@@ -1,7 +1,8 @@
-
+import type { FC, SVGProps } from "react";
 import { GoPlus } from "react-icons/go";
+import { IoEyeOutline, IoArrowBackOutline } from "react-icons/io5";
 
-const Edit = () => (
+const Edit: FC<SVGProps<SVGSVGElement>> = () => (
     <svg
         width="15"
         height="20"
@@ -36,7 +37,7 @@ const Edit = () => (
     </svg>
 );
 
-const Delete = () => (
+const Delete: FC<SVGProps<SVGSVGElement>> = () => (
     <svg
         width="14"
         height="20"
@@ -86,6 +87,8 @@ const Icons = {
     Edit,
     Delete,
     Plus: GoPlus,
+    View: IoEyeOutline,
+    Back: IoArrowBackOutline
 };
 
 export default Icons;

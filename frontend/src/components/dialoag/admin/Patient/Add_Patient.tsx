@@ -143,7 +143,7 @@ const AddPatient = ({ open, onClose, onAdded , afterFunction}: AddPatientProps) 
             }}
             header="Add Patient"
         >
-            <Box p={5}>
+            <Box p={2}>
                 {showSuccess ? (
                     <Box>
                         <Text
@@ -172,13 +172,13 @@ const AddPatient = ({ open, onClose, onAdded , afterFunction}: AddPatientProps) 
                     </Box>
                 ) : (
                     <>
-                        <Text fontSize="sm" color="gray.600" mb={5}>
+                        <Text fontSize="sm" color="gray.600" mb={2}>
                             The patient receives an email with a link to
                             activate their account.
                         </Text>
 
                         <form onSubmit={handleSubmit(onSubmit)}>
-                            <VStack align="stretch" gap={4}>
+                            {/* <VStack align="stretch" gap={4}> */}
                                 <Box>
                                     <Text fontSize="sm" fontWeight="600" mb={1}>
                                         Patient name *
@@ -220,7 +220,7 @@ const AddPatient = ({ open, onClose, onAdded , afterFunction}: AddPatientProps) 
                                         </Text>
                                     )}
                                 </Box>
-
+ 
                                 <Box>
                                     <Text fontSize="sm" fontWeight="600" mb={1}>
                                         Address *
@@ -303,7 +303,7 @@ const AddPatient = ({ open, onClose, onAdded , afterFunction}: AddPatientProps) 
                                         Add patient
                                     </Button>
                                 </Flex>
-                            </VStack>
+                           
                         </form>
                     </>
                 )}

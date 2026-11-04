@@ -498,26 +498,26 @@ router.put("/edit-profile", middleware, async (req, res) => {
 });
 
 
+
+
+
 router.get(
-  "/get-all-patient",
-  middleware,
-  async (req, res): Promise<void> => {
-    try {
-      const {
-        page = "1",
-        limit = "10",
-        search = "",
-      } = req.query;
+    "/get-all-patient",
+    middleware,
+    async (req, res): Promise<void> => {
+        try {
+            const page = Number(req.query.page) || 1;
+            const limit = Number(req.query.limit) || 10;
+            const search = String(req.query.search || "").trim();
+            const doctor_id = String(req.query.doctor_id || "").trim();
 
-      const parsedPage = Math.max(Number(page) || 1, 1);
-      const parsedLimit = Math.max(Number(limit) || 10, 0);
+            const parsedPage = Math.max(page, 1);
+            const parsedLimit = Math.max(limit, 0);
+            const offset = (parsedPage - 1) * parsedLimit;
 
-      const offset = (parsedPage - 1) * parsedLimit;
+            const searchQuery = `%${search}%`;
 
-      const searchQuery = `%${String(search).trim()}%`;
-
-      // WHERE CLAUSE
-      const whereClause = `
+            let whereClause = `
                 u.status = 0
                 AND u.role = 'patient'
                 AND (
@@ -527,14 +527,19 @@ router.get(
                 )
             `;
 
-      const queryParams: (string | number)[] = [
-        searchQuery,
-        searchQuery,
-        searchQuery,
-      ];
+            const queryParams: (string | number)[] = [
+                searchQuery,
+                searchQuery,
+                searchQuery,
+            ];
 
-      // MAIN QUERY
-      let query = `
+            // Doctor filter
+            if (doctor_id) {
+                whereClause += ` AND p.doctor_id = ?`;
+                queryParams.push(doctor_id);
+            }
+
+            const query = `
                 SELECT
                     u.id,
                     u.name,
@@ -543,76 +548,89 @@ router.get(
                     u.address,
                     u.role,
                     u.status,
-                    u.created_at
+                    u.created_at,
+                    p.doctor_id,
+                    d.name AS doctor_name
+
                 FROM user u
+
+                LEFT JOIN patient p
+                    ON u.id = p.patient_id
+
+                LEFT JOIN user d
+                    ON d.id = p.doctor_id
+                    AND d.role = 'doctor'
+                    AND d.status = 0
+
                 WHERE ${whereClause}
+
                 ORDER BY u.created_at DESC
+
+                ${parsedLimit > 0 ? "LIMIT ? OFFSET ?" : ""}
             `;
 
-      // PAGINATION
-      if (parsedLimit !== 0) {
-        query += `
-                    LIMIT ?
-                    OFFSET ?
-                `;
+            const finalParams = [...queryParams];
 
-        queryParams.push(parsedLimit, offset);
-      }
+            if (parsedLimit > 0) {
+                finalParams.push(parsedLimit, offset);
+            }
 
-      // GET PATIENTS
-      const data = await executeQuery(
-        query,
-        queryParams
-      );
+            // DEBUG
+            console.log("Doctor ID:", doctor_id);
+            console.log("SQL Query:", query);
+            console.log("SQL Params:", finalParams);
 
-      // TOTAL COUNT
-      const totalItemsResult = await executeQuery(
-        `
-                    SELECT COUNT(*) AS total_items
-                    FROM user u
-                    WHERE ${whereClause}
-                `,
-        [
-          searchQuery,
-          searchQuery,
-          searchQuery,
-        ]
-      );
+            const data = await executeQuery(query, finalParams);
 
-      const totalItems = Number(
-        totalItemsResult[0]?.total_items || 0
-      );
+            // COUNT QUERY
+            const countQuery = `
+                SELECT COUNT(DISTINCT u.id) AS total_items
+                FROM user u
 
-      // NEXT PAGE
-      const isNext = totalItems > offset + data.length;
+                LEFT JOIN patient p
+                    ON u.id = p.patient_id
 
-      // RESPONSE
-      res.status(200).json({
-        status: 1,
-        message: "Patient list fetched successfully",
-        data,
-        pagination: {
-          currentPage: parsedPage,
-          limit: parsedLimit,
-          totalItems,
-          totalPages:
-            parsedLimit === 0
-              ? 1
-              : Math.ceil(totalItems / parsedLimit),
-          isNext,
-        },
-      });
+                WHERE ${whereClause}
+            `;
 
-    } catch (error) {
-      console.error("Get all patients error:", error);
+            const totalItemsResult = await executeQuery(
+                countQuery,
+                queryParams
+            );
 
-      res.status(500).json({
-        status: 0,
-        message: "Internal server error",
-      });
+            const totalItems = Number(
+                totalItemsResult[0]?.total_items || 0
+            );
+
+            res.status(200).json({
+                status: 1,
+                message: "Patient list fetched successfully",
+                data,
+                pagination: {
+                    currentPage: parsedPage,
+                    limit: parsedLimit,
+                    totalItems,
+                    totalPages: parsedLimit === 0
+                        ? 1
+                        : Math.ceil(totalItems / parsedLimit),
+                    isNext: totalItems > offset + data.length,
+                },
+            });
+
+        } catch (error) {
+            console.error("Get all patients error:", error);
+
+            res.status(500).json({
+                status: 0,
+                message: "Internal server error",
+            });
+        }
     }
-  }
 );
+
+
+
+
 
 router.get(
   "/get-all-doctor",

@@ -24,7 +24,7 @@ import {
     FiRefreshCw,
     FiUploadCloud,
 } from "react-icons/fi";
-import { ASSET_URL } from "../../../../utils/variables";
+import { ASSET_URL } from "../../../utils/variables";
 import CustomTable from "../../../reusable/CustomTable";
 import CustomButton from "../../../reusable/CustomButton";
 

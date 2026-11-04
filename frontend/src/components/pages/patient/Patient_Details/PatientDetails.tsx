@@ -7,7 +7,7 @@ import {
     Text,
     Heading,
     HStack,
-    VStack,
+    // VStack,
 
     Separator
 } from "@chakra-ui/react";
@@ -17,6 +17,9 @@ import { IoWarningOutline } from "react-icons/io5";
 
 import WeeklyMealChart from "../../../../components/ui/charts/WeeklyMealChart";
 import { FcApproval } from "react-icons/fc";
+import Icons from "../../../utils/Icons";
+import { useAuth } from "../../../context/AuthContext";
+import Reports from "../reports/Reports";
 // Weekly meal data
 const weeklyData = [
     { day: "Mon", date: "19 Oct", carbs: 160 },
@@ -29,14 +32,18 @@ const weeklyData = [
 ];
 
 const PatientDetails = () => {
+    const { user } =useAuth();
     return (
-        <Box w="100%" p={{ base: 3, md: 5 }} bg="white">
+        <Box w="100%" p={{ base: 3, md: 5 }} bg="white" borderRadius={10}>
 
             {/* Patient Header */}
             <Box mb={5}>
+                <Flex gap={4} justify={'flex-start'} align={'center'}>
+                    <Icons.Back />
                 <Heading size="lg" color="gray.800">
-                    Ravi Kulkarni
+                    {user?.name}
                 </Heading>
+                </Flex>
 
                 <Text fontSize="md" color="gray.500" mt={1}>
                     Patient Details
@@ -45,7 +52,7 @@ const PatientDetails = () => {
 
 
             {/* Warning Section */}
-            <Box
+            {/* <Box
                 w="100%"
                 bg="red.50"
                 border="1px solid"
@@ -76,29 +83,9 @@ const PatientDetails = () => {
 
 
                 </VStack>
-            </Box>
-
-            {/* Doctor Access */}
-            {/* <Box
-                w="100%"
-                border="1px solid"
-                borderColor="gray.200"
-                borderRadius="lg"
-                p={4}
-                mb={5}
-            >
-                <Text
-                    fontSize="md"
-                    color="gray.600"
-                    fontWeight="medium"
-                >
-                    Doctor access
-                </Text>
-
-                <Text fontSize="md" color="gray.800" mt={1}>
-                    Dr. Ananya Rao has access to this patient's information.
-                </Text>
             </Box> */}
+
+           
 
             {/* Contact Information */}
             <Box
@@ -127,7 +114,7 @@ const PatientDetails = () => {
                             Email
                         </Text>
                         <Text fontSize="md" color="gray.800" fontWeight="medium">
-                            ravi.k@example.com
+                            {user?.email}
                         </Text>
                     </GridItem>
 
@@ -136,7 +123,7 @@ const PatientDetails = () => {
                             Phone
                         </Text>
                         <Text fontSize="md" color="gray.800" fontWeight="medium">
-                            +91 98200 11234
+                            +91 {user?.phone}
                         </Text>
                     </GridItem>
 
@@ -145,7 +132,7 @@ const PatientDetails = () => {
                             Address
                         </Text>
                         <Text fontSize="md" color="gray.800" fontWeight="medium">
-                            Kothrud, Pune
+                            {user?.address}
                         </Text>
                     </GridItem>
 
@@ -154,16 +141,18 @@ const PatientDetails = () => {
                             Doctor
                         </Text>
                         <Text fontSize="md" color="gray.800" fontWeight="medium">
-                            Dr. Ananya Rao
+                           {user?.name}
                         </Text>
                     </GridItem>
                 </Grid>
             </Box>
 
+            <Reports />
+
             {/* Meals Recorded */}
 
             {/* Meals Recorded */}
-            <Box
+            {/* <Box
                 w="100%"
                 border="1px solid"
                 borderColor="gray.200"
@@ -171,7 +160,7 @@ const PatientDetails = () => {
                 p={{ base: 4, md: 5 }}
                 mb={5}
             >
-                {/* Header */}
+               
                 <Flex
                     justify="space-between"
                     align={{ base: "flex-start", sm: "center" }}
@@ -188,9 +177,7 @@ const PatientDetails = () => {
                     </Text>
                 </Flex>
 
-                {/* Summary Cards */}
-
-                {/* Three Summary Cards */}
+              
                 <Grid
                     templateColumns={{
                         base: "1fr",
@@ -200,7 +187,7 @@ const PatientDetails = () => {
                     gap={{ base: 3, md: 4 }}
                     w="100%"
                 >
-                    {/* 1. Meals Recorded */}
+                    
                     <GridItem>
                         <Box
                             bg="white"
@@ -225,7 +212,7 @@ const PatientDetails = () => {
                         </Box>
                     </GridItem>
 
-                    {/* 2. Daily Average */}
+                    
                     <GridItem>
                         <Box
                             bg="white"
@@ -266,7 +253,7 @@ const PatientDetails = () => {
                         </Box>
                     </GridItem>
 
-                    {/* 3. Days Above Threshold */}
+                    
                     <GridItem>
                         <Box
                             bg="white"
@@ -303,52 +290,15 @@ const PatientDetails = () => {
                 </Grid>
 
 
-                {/* Weekly Meal Chart */}
+                
                 <Box mt={6}>
                     <WeeklyMealChart data={weeklyData} />
                 </Box>
 
-                {/* Daily Average and Threshold */}
+              
                 <Separator my={5} />
 
-                {/* <Grid
-                    templateColumns="repeat(2, 1fr)"
-                    gap={4}
-                >
-                    Daily Average
-                    <GridItem>
-                        <Text fontSize="md" color="gray.500" mb={1}>
-                            Daily average
-                        </Text>
-
-                        <Text
-                            fontSize="2xl"
-                            fontWeight="bold"
-                            color="gray.900"
-                        >
-                            182g
-                        </Text>
-                    </GridItem>
-
-                    Threshold
-                    <GridItem>
-                        <Text fontSize="md" color="gray.500" mb={1}>
-                            Threshold
-                        </Text>
-
-                        <Text
-                            fontSize="2xl"
-                            fontWeight="bold"
-                            color="gray.900"
-                        >
-                            200 g
-                        </Text>
-                    </GridItem>
-                </Grid> */}
-
-                {/* Latest AI Analysis */}
-
-                {/* Latest AI Analysis */}
+               
                 <Box
                     mt={6}
                     border="1px solid"
@@ -357,12 +307,12 @@ const PatientDetails = () => {
                     p={{ base: 4, md: 5 }}
                     bg="white"
                 >
-                    {/* Heading */}
+                   
                     <Heading size="md" fontWeight="bold" color="gray.800" mb={5}>
                         Latest AI Analysis
                     </Heading>
 
-                    {/* Meal Information */}
+                   
                     <Flex
                         justify="space-between"
                         align="center"
@@ -380,7 +330,7 @@ const PatientDetails = () => {
                         </Box>
                     </Flex>
 
-                    {/* Analysis Complete - Full Width */}
+                   
                     <Box
                         w="100%"
                         bg="#e3f3f2"
@@ -418,13 +368,13 @@ const PatientDetails = () => {
 
                     <Separator mb={4} />
 
-                    {/* Analysis Details - Left Labels and Right Values */}
+                  
                     <Grid
                         templateColumns="1fr"
                         columnGap={6}
                         rowGap={5}
                     >
-                        {/* Detected Items */}
+                        
                         <GridItem>
                             <Flex justify="space-between" align="flex-start" gap={3}>
                                 <Text
@@ -447,7 +397,7 @@ const PatientDetails = () => {
                         </GridItem>
                         <Separator my={1} />
 
-                        {/* Estimated Carbohydrates */}
+                       
                         <GridItem>
                             <Flex justify="space-between" align="flex-start" gap={2}>
                                 <Text fontSize="sm" fontWeight="medium" color="gray.500">
@@ -479,7 +429,7 @@ const PatientDetails = () => {
                         </GridItem>
                         <Separator my={1} />
 
-                        {/* Estimated Calories */}
+                        
                         <GridItem>
                             <Flex justify="space-between" align="center" gap={3}>
                                 <Text
@@ -502,16 +452,14 @@ const PatientDetails = () => {
                     </Grid>
                     <Separator my={1} />
 
-                    {/* Illustrative Data */}
+                    
                     <Box
                         bg="gray.50"
                         borderRadius="md"
                         p={3}
                         w="100%"
                     >
-                        {/* <Text fontSize="xs" color="gray.500" fontWeight="medium">
-                            ⓘ Illustrative data
-                        </Text> */}
+                       
 
                         <Text
                             fontSize="xs"
@@ -525,7 +473,7 @@ const PatientDetails = () => {
                     </Box>
                 </Box>
 
-            </Box>
+            </Box> */}
 
         </Box>
     );
