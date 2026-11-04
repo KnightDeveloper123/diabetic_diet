@@ -262,13 +262,16 @@ const ProfileSettings = () => {
                             "tel"
                         )}
 
-                        {renderField(
+                        {user?.role === 'patient' &&
+                         renderField(
                             "Doctor Name",
                             "doctor_name",
                             "Enter doctor name",
                             "text",
                             true
-                        )}
+                        )} 
+
+                       
 
                         <Box gridColumn={{ base: "auto", md: "1 / -1" }}>
                             <Text
@@ -286,7 +289,7 @@ const ProfileSettings = () => {
                                     handleChange("address", e.target.value)
                                 }
                                 placeholder="Enter your address"
-                                // h="100px"
+                                h="100px"
                                 border="1px solid #CBD5E1"
                                 borderRadius="7px"
                                 fontSize="14px"

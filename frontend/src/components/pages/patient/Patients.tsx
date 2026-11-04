@@ -6,16 +6,29 @@ import {
     Table,
     Text,
 } from "@chakra-ui/react";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { CiSearch } from "react-icons/ci";
 import { LuPlus, LuChevronRight } from "react-icons/lu";
 import AddPatient from "../../../../src/components/dialoag/admin/Patient/Add_Patient";
 import CustomTable from "../../../../src/components/reusable/CustomTable";
 import { useNavigate } from "react-router-dom";
+import { usePatient } from "../../context/PatientContext";
+import CustomPagination from "../../reusable/CustomPagination";
 
 const Patients = () => {
     const [search, setSearch] = useState("");
+    const [page, setPage] = useState(1);
+    const limit = 10;
     const navigate = useNavigate();
+    const { allPatient, fetchAllPatient, } = usePatient();
+    console.log(allPatient)
+    useEffect(() => {
+        fetchAllPatient({
+            page: page,
+            limit: limit,
+            search: search
+        })
+    }, [page, limit, search])
 
     const patients = [
         {
@@ -60,7 +73,7 @@ const Patients = () => {
     const filteredPatients = useMemo(() => {
         const value = search.toLowerCase().trim();
 
-        return patients.filter((patient) =>
+        return allPatient?.data?.filter((patient: any) =>
             [
                 patient.name,
                 patient.email,
@@ -78,6 +91,13 @@ const Patients = () => {
         { name: "ACTION" },
     ];
 
+   const afterFunction = useCallback(() => {
+    fetchAllPatient({
+        page,
+        limit,
+        search,
+    });
+}, [page, limit, search, fetchAllPatient]);
     return (
         <Flex
             direction="column"
@@ -91,6 +111,8 @@ const Patients = () => {
             <AddPatient
                 open={isAddPatientOpen}
                 onClose={() => setIsAddPatientOpen(false)}
+                afterFunction={afterFunction}
+
             />
 
             {/* Page heading */}
@@ -148,7 +170,7 @@ const Patients = () => {
                         </Text>
 
                         <Text fontSize="13px" color="#64748B" mt={1}>
-                            {filteredPatients.length} patients
+                            {allPatient?.data?.length} patients
                         </Text>
                     </Box>
 
@@ -185,7 +207,7 @@ const Patients = () => {
                 </Flex>
 
                 {/* MOBILE: Patient cards */}
-                <Box display={{ base: "block", md: "none" }} p={3} pt={0}>
+                {/* <Box display={{ base: "block", md: "none" }} p={3} pt={0}>
                     <Flex direction="column" gap={3}>
                         {filteredPatients.map((patient) => (
                             <Box
@@ -244,11 +266,11 @@ const Patients = () => {
                             </Text>
                         )}
                     </Flex>
-                </Box>
+                </Box> */}
 
                 {/* TABLET AND DESKTOP: CustomTable */}
                 <Box
-                    display={{ base: "none", md: "block" }}
+                    // display={{ base: "none", md: "block" }}
                     w="100%"
                     overflowX="auto"
                 >
@@ -257,7 +279,7 @@ const Patients = () => {
                         borderradius="0"
                     >
                         <Table.Body>
-                            {filteredPatients.map((patient) => (
+                            {allPatient?.data?.map((patient: any) => (
                                 <Table.Row key={patient.id}>
                                     <Table.Cell px={4} py={3} whiteSpace="nowrap">
                                         {patient.name}
@@ -281,7 +303,7 @@ const Patients = () => {
                                             variant="outline"
                                             whiteSpace="nowrap"
                                             onClick={() =>
-                                                navigate("/admin/patients/ravi-kulkarni")
+                                                navigate(`/doctor/details/${patient.id}`)
                                             }
                                         >
                                             View patient
@@ -291,7 +313,7 @@ const Patients = () => {
                                 </Table.Row>
                             ))}
 
-                            {filteredPatients.length === 0 && (
+                            {allPatient?.data?.length === 0 && (
                                 <Table.Row>
                                     <Table.Cell
                                         colSpan={5}
@@ -304,9 +326,14 @@ const Patients = () => {
                             )}
                         </Table.Body>
                     </CustomTable>
-                </Box>
+                    <CustomPagination total_values={allPatient?.pagination?.totalItems}
+                        page={page}
+                        limit={limit}
+                        setpage={setPage} />
+
             </Box>
-        </Flex>
+        </Box>
+        </Flex >
     );
 };
 

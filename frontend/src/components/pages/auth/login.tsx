@@ -109,7 +109,7 @@ function Login() {
 
       const role: UserRole = user.role;
 
-      console.log("Login successful:", user);
+      // console.log("Login successful:", user);
 
       // Save authentication details
       localStorage.setItem("auth_token", res.auth_token || "");

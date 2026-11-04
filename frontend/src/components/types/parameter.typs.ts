@@ -11,7 +11,7 @@ export interface FunctionTypes<T> {
     message: string;
     data: T
     pagination?: PaginationTypes,
-     todayCount?: number;
+    todayCount?: number;
 }
 
 export interface FunctionParams {

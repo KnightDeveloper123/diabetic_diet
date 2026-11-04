@@ -110,6 +110,8 @@ function AppRoutes() {
           <Route path="/doctor" element={<DoctorLayout />}>
             <Route index element={<DoctorDashboard />} />
             <Route path="patients" element={<Patients />} />
+            <Route path="details/:id" element={<PatientDetails />} />
+
             <Route path="settings" element={<ProfileSettings />} />
           </Route>
         </Route>

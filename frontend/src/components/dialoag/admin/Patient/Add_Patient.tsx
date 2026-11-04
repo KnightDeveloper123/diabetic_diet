@@ -1,5 +1,5 @@
-import { useState } from "react";
-import type { FormEvent } from "react";
+
+import { useEffect, useState } from "react";
 import {
     Box,
     Button,
@@ -8,58 +8,137 @@ import {
     Text,
     VStack,
 } from "@chakra-ui/react";
-import CustomDialog from "../../../../components/reusable/CustomDialog";
 import { MdOutlineMail } from "react-icons/md";
+import { useForm } from "react-hook-form";
+
+import CustomDialog from "../../../../components/reusable/CustomDialog";
+import { useDoctor } from "../../../context/DoctorContext";
+import useFetch from "../../../hooks/uesFetch";
+import CustomCombobox from "../../../reusable/CustomCombobox";
+
+interface PatientFormData {
+    name: string;
+    phone: string;
+    address: string;
+    email: string;
+    doctor_id: string | string[];
+    role?: string;
+}
 
 interface AddPatientProps {
     open: boolean;
     onClose: () => void;
+      afterFunction?: () => void;
     onAdded?: (patient: {
         name: string;
         phone: string;
         address: string;
         email: string;
-        doctorName: string;
+        doctor_id: string | string[];
+        role: string;
     }) => void;
 }
 
-const AddPatient = ({ open, onClose, onAdded }: AddPatientProps) => {
-    const [formData, setFormData] = useState({
-        name: "",
-        phone: "",
-        address: "",
-        email: "",
-        doctorName: "Dr. Ananya Rao",
-    });
+const AddPatient = ({ open, onClose, onAdded , afterFunction}: AddPatientProps) => {
+    const { fetchAllDoctor, allDoctor } = useDoctor();
+    const { request } = useFetch();
 
     const [showSuccess, setShowSuccess] = useState(false);
+    const [successData, setSuccessData] = useState<PatientFormData | null>(
+        null
+    );
+    const [submitError, setSubmitError] = useState("");
 
-    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-
-        onAdded?.(formData);
-        setShowSuccess(true);
-    };
-
-    const handleClose = () => {
-        setFormData({
+    const {
+        register,
+        handleSubmit,
+        control,
+        reset,
+        formState: { errors, isSubmitting },
+    } = useForm<PatientFormData>({
+        defaultValues: {
             name: "",
             phone: "",
             address: "",
             email: "",
-            doctorName: "Dr. Ananya Rao",
-        });
+            doctor_id: "",
+            role: "patient",
+        },
+    });
+
+    useEffect(() => {
+        if (open) {
+            fetchAllDoctor({ page: 1, limit: 10, search: "" });
+        }
+    }, [open, fetchAllDoctor]);
+
+    const selectedDoctor = (allDoctor?.data || []).map((doctor) => ({
+        label: doctor.name,
+        value: String(doctor.id),
+    }));
+
+    const onSubmit = async (data: PatientFormData) => {
+        setSubmitError("");
+
+        const finalData = {
+            ...data,
+            doctor_id: Array.isArray(data.doctor_id)
+                ? data.doctor_id[0] || ""
+                : data.doctor_id,
+            role: "patient",
+        };
+
+        try {
+            const response = await request({
+                url: "/api/health/add",
+                method: "POST",
+                body: finalData,
+                withLoader: true,
+            });
+
+            if (response?.status === 1) {
+                setSuccessData(finalData);
+                setShowSuccess(true);
+                onAdded?.(finalData);
+
+                reset({
+                    name: "",
+                    phone: "",
+                    address: "",
+                    email: "",
+                    doctor_id: "",
+                    role: "patient",
+                });
+                afterFunction?.();
+            } else {
+                setSubmitError(
+                    response?.message || "Unable to add patient."
+                );
+            }
+        } catch (error: unknown) {
+            console.error(error);
+            setSubmitError(
+                error instanceof Error
+                    ? error.message
+                    : "Something went wrong. Please try again."
+            );
+        }
+    };
+
+    const handleClose = () => {
+        reset();
         setShowSuccess(false);
+        setSuccessData(null);
+        setSubmitError("");
         onClose();
     };
 
     return (
-
         <CustomDialog
             isOpen={open}
             setisOpen={(value) => {
                 if (!value) {
-                    onClose();
+                    handleClose();
                 }
             }}
             header="Add Patient"
@@ -67,14 +146,17 @@ const AddPatient = ({ open, onClose, onAdded }: AddPatientProps) => {
             <Box p={5}>
                 {showSuccess ? (
                     <Box>
-                        <Text fontSize="lg" fontWeight="600" color="green.700">
+                        <Text
+                            fontSize="lg"
+                            fontWeight="600"
+                            color="green.700"
+                        >
                             Invitation sent
                         </Text>
 
                         <Text mt={2} fontSize="sm" color="gray.600">
-                            {formData.name} was added. We emailed an
-                            activation link to {formData.email} so they can
-                            set their password.
+                            {successData?.name} was added. An activation
+                            link was sent to {successData?.email}.
                         </Text>
 
                         <Flex justify="flex-end" mt={5}>
@@ -95,7 +177,7 @@ const AddPatient = ({ open, onClose, onAdded }: AddPatientProps) => {
                             activate their account.
                         </Text>
 
-                        <form onSubmit={handleSubmit}>
+                        <form onSubmit={handleSubmit(onSubmit)}>
                             <VStack align="stretch" gap={4}>
                                 <Box>
                                     <Text fontSize="sm" fontWeight="600" mb={1}>
@@ -103,15 +185,15 @@ const AddPatient = ({ open, onClose, onAdded }: AddPatientProps) => {
                                     </Text>
                                     <Input
                                         placeholder="Full name"
-                                        value={formData.name}
-                                        required
-                                        onChange={(e) =>
-                                            setFormData({
-                                                ...formData,
-                                                name: e.target.value,
-                                            })
-                                        }
+                                        {...register("name", {
+                                            required: "Patient name is required",
+                                        })}
                                     />
+                                    {errors.name && (
+                                        <Text color="red.500" fontSize="xs">
+                                            {errors.name.message}
+                                        </Text>
+                                    )}
                                 </Box>
 
                                 <Box>
@@ -123,16 +205,20 @@ const AddPatient = ({ open, onClose, onAdded }: AddPatientProps) => {
                                         type="tel"
                                         inputMode="numeric"
                                         maxLength={10}
-                                        pattern="[0-9]{10}"
-                                        value={formData.phone}
-                                        required
-                                        onChange={(e) =>
-                                            setFormData({
-                                                ...formData,
-                                                phone: e.target.value.replace(/\D/g, ""),
-                                            })
-                                        }
+                                        {...register("phone", {
+                                            required: "Phone number is required",
+                                            pattern: {
+                                                value: /^[0-9]{10}$/,
+                                                message:
+                                                    "Enter a valid 10-digit phone number",
+                                            },
+                                        })}
                                     />
+                                    {errors.phone && (
+                                        <Text color="red.500" fontSize="xs">
+                                            {errors.phone.message}
+                                        </Text>
+                                    )}
                                 </Box>
 
                                 <Box>
@@ -141,15 +227,15 @@ const AddPatient = ({ open, onClose, onAdded }: AddPatientProps) => {
                                     </Text>
                                     <Input
                                         placeholder="House, street, area, city, PIN"
-                                        value={formData.address}
-                                        required
-                                        onChange={(e) =>
-                                            setFormData({
-                                                ...formData,
-                                                address: e.target.value,
-                                            })
-                                        }
+                                        {...register("address", {
+                                            required: "Address is required",
+                                        })}
                                     />
+                                    {errors.address && (
+                                        <Text color="red.500" fontSize="xs">
+                                            {errors.address.message}
+                                        </Text>
+                                    )}
                                 </Box>
 
                                 <Box>
@@ -159,36 +245,49 @@ const AddPatient = ({ open, onClose, onAdded }: AddPatientProps) => {
                                     <Input
                                         type="email"
                                         placeholder="name@example.com"
-                                        value={formData.email}
-                                        required
-                                        onChange={(e) =>
-                                            setFormData({
-                                                ...formData,
-                                                email: e.target.value,
-                                            })
-                                        }
+                                        {...register("email", {
+                                            required: "Email is required",
+                                            pattern: {
+                                                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                                                message: "Enter a valid email",
+                                            },
+                                        })}
                                     />
+                                    {errors.email && (
+                                        <Text color="red.500" fontSize="xs">
+                                            {errors.email.message}
+                                        </Text>
+                                    )}
                                 </Box>
 
                                 <Box>
                                     <Text fontSize="sm" fontWeight="600" mb={1}>
                                         Doctor name
                                     </Text>
-                                    <Input
-                                        value={formData.doctorName}
-                                        readOnly
-                                        bg="gray.50"
+
+                                    <CustomCombobox
+                                        name="doctor_id"
+                                        values={selectedDoctor}
+                                        control={control}
                                     />
+
                                     <Text fontSize="xs" color="gray.500" mt={1}>
-                                        Filled in from your account.
+                                        Select the doctor assigned to this patient.
                                     </Text>
                                 </Box>
+
+                                {submitError && (
+                                    <Text color="red.500" fontSize="sm">
+                                        {submitError}
+                                    </Text>
+                                )}
 
                                 <Flex justify="flex-end" gap={3} pt={2}>
                                     <Button
                                         type="button"
                                         variant="outline"
                                         onClick={handleClose}
+                                        disabled={isSubmitting}
                                     >
                                         Cancel
                                     </Button>
@@ -198,7 +297,7 @@ const AddPatient = ({ open, onClose, onAdded }: AddPatientProps) => {
                                         bg="#2160C4"
                                         color="white"
                                         _hover={{ bg: "#194FA5" }}
-
+                                        loading={isSubmitting}
                                     >
                                         <MdOutlineMail />
                                         Add patient
@@ -209,7 +308,7 @@ const AddPatient = ({ open, onClose, onAdded }: AddPatientProps) => {
                     </>
                 )}
             </Box>
-        </CustomDialog >
+        </CustomDialog>
     );
 };
 
