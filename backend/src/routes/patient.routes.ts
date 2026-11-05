@@ -416,8 +416,6 @@ router.get("/profile", middleware, async (req, res) => {
 router.put("/edit-profile", middleware, async (req, res) => {
   try {
 
-
-
     const {
       name,
       email,

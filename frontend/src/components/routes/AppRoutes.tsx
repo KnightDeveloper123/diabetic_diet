@@ -92,7 +92,7 @@ function AppRoutes() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        <Route path="/create-password" element={<CreatePassword />} />
+        <Route  path="/create-password/:token" element={<CreatePassword />} />
 
         <Route path="/unauthorized" element={<Unauthorized />} />
 

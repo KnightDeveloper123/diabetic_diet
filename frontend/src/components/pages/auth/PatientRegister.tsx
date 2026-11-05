@@ -316,15 +316,24 @@ function PatientRegister() {
                                     borderRadius="7px"
                                     _placeholder={{ color: "#9CA3AF" }}
                                     _hover={{ borderColor: "#9CA3AF" }}
+
                                     _focusVisible={{
                                         borderColor: "#2563EB",
                                         boxShadow: "0 0 0 1px #2563EB",
                                     }}
                                     {...register("name", {
                                         required: "Full name is required",
+                                        setValueAs: (value) => value.trim(),
                                         minLength: {
                                             value: 2,
-                                            message: "Please enter your full name",
+                                            message: "Please enter at least 2 characters",
+                                        },
+                                        pattern: {
+                                            value: /^[A-Za-z ]+$/,
+                                            message: "Only letters are allowed",
+                                        },
+                                        onChange: (e) => {
+                                            e.target.value = e.target.value.replace(/[^A-Za-z ]/g, "");
                                         },
                                     })}
                                 />

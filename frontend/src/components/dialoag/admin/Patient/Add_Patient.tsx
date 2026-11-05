@@ -28,7 +28,7 @@ interface PatientFormData {
 interface AddPatientProps {
     open: boolean;
     onClose: () => void;
-      afterFunction?: () => void;
+    afterFunction?: () => void;
     onAdded?: (patient: {
         name: string;
         phone: string;
@@ -39,7 +39,7 @@ interface AddPatientProps {
     }) => void;
 }
 
-const AddPatient = ({ open, onClose, onAdded , afterFunction}: AddPatientProps) => {
+const AddPatient = ({ open, onClose, onAdded, afterFunction }: AddPatientProps) => {
     const { fetchAllDoctor, allDoctor } = useDoctor();
     const { request } = useFetch();
 
@@ -179,131 +179,142 @@ const AddPatient = ({ open, onClose, onAdded , afterFunction}: AddPatientProps) 
 
                         <form onSubmit={handleSubmit(onSubmit)}>
                             {/* <VStack align="stretch" gap={4}> */}
-                                <Box>
-                                    <Text fontSize="sm" fontWeight="600" mb={1}>
-                                        Patient name *
-                                    </Text>
-                                    <Input
-                                        placeholder="Full name"
-                                        {...register("name", {
-                                            required: "Patient name is required",
-                                        })}
-                                    />
-                                    {errors.name && (
-                                        <Text color="red.500" fontSize="xs">
-                                            {errors.name.message}
-                                        </Text>
-                                    )}
-                                </Box>
-
-                                <Box>
-                                    <Text fontSize="sm" fontWeight="600" mb={1}>
-                                        Phone *
-                                    </Text>
-                                    <Input
-                                        placeholder="10-digit mobile number"
-                                        type="tel"
-                                        inputMode="numeric"
-                                        maxLength={10}
-                                        {...register("phone", {
-                                            required: "Phone number is required",
-                                            pattern: {
-                                                value: /^[0-9]{10}$/,
-                                                message:
-                                                    "Enter a valid 10-digit phone number",
-                                            },
-                                        })}
-                                    />
-                                    {errors.phone && (
-                                        <Text color="red.500" fontSize="xs">
-                                            {errors.phone.message}
-                                        </Text>
-                                    )}
-                                </Box>
- 
-                                <Box>
-                                    <Text fontSize="sm" fontWeight="600" mb={1}>
-                                        Address *
-                                    </Text>
-                                    <Input
-                                        placeholder="House, street, area, city, PIN"
-                                        {...register("address", {
-                                            required: "Address is required",
-                                        })}
-                                    />
-                                    {errors.address && (
-                                        <Text color="red.500" fontSize="xs">
-                                            {errors.address.message}
-                                        </Text>
-                                    )}
-                                </Box>
-
-                                <Box>
-                                    <Text fontSize="sm" fontWeight="600" mb={1}>
-                                        Email *
-                                    </Text>
-                                    <Input
-                                        type="email"
-                                        placeholder="name@example.com"
-                                        {...register("email", {
-                                            required: "Email is required",
-                                            pattern: {
-                                                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                                                message: "Enter a valid email",
-                                            },
-                                        })}
-                                    />
-                                    {errors.email && (
-                                        <Text color="red.500" fontSize="xs">
-                                            {errors.email.message}
-                                        </Text>
-                                    )}
-                                </Box>
-
-                                <Box>
-                                    <Text fontSize="sm" fontWeight="600" mb={1}>
-                                        Doctor name
-                                    </Text>
-
-                                    <CustomCombobox
-                                        name="doctor_id"
-                                        values={selectedDoctor}
-                                        control={control}
-                                    />
-
-                                    <Text fontSize="xs" color="gray.500" mt={1}>
-                                        Select the doctor assigned to this patient.
-                                    </Text>
-                                </Box>
-
-                                {submitError && (
-                                    <Text color="red.500" fontSize="sm">
-                                        {submitError}
+                            <Box>
+                                <Text fontSize="sm" fontWeight="600" mb={1}>
+                                    Patient name *
+                                </Text>
+                                <Input
+                                    placeholder="Full name"
+                                    {...register("name", {
+                                        required: "Patient name is required",
+                                        pattern: {
+                                            value: /^[A-Za-z ]+$/,
+                                            message: "Only letters are allowed",
+                                        },
+                                        onChange: (e) => {
+                                            e.target.value = e.target.value.replace(/[^A-Za-z ]/g, "");
+                                        },
+                                    })}
+                                />
+                                {errors.name && (
+                                    <Text color="red.500" fontSize="xs">
+                                        {errors.name.message}
                                     </Text>
                                 )}
+                            </Box>
 
-                                <Flex justify="flex-end" gap={3} pt={2}>
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        onClick={handleClose}
-                                        disabled={isSubmitting}
-                                    >
-                                        Cancel
-                                    </Button>
+                            <Box>
+                                <Text fontSize="sm" fontWeight="600" mb={1}>
+                                    Phone *
+                                </Text>
+                                <Input
+                                    placeholder="10-digit mobile number"
+                                    type="tel"
+                                    inputMode="numeric"
+                                    maxLength={10}
+                                    {...register("phone", {
+                                        required: "Phone number is required",
+                                        pattern: {
+                                            value: /^[0-9]{10}$/,
+                                            message: "Enter a valid 10-digit phone number",
+                                        },
+                                        onChange: (e) => {
+                                            e.target.value = e.target.value
+                                                .replace(/[^0-9]/g, "")
+                                                .slice(0, 10);
+                                        },
+                                    })}
+                                />
+                                {errors.phone && (
+                                    <Text color="red.500" fontSize="xs">
+                                        {errors.phone.message}
+                                    </Text>
+                                )}
+                            </Box>
 
-                                    <Button
-                                        type="submit"
-                                        bg="#2160C4"
-                                        color="white"
-                                        _hover={{ bg: "#194FA5" }}
-                                        loading={isSubmitting}
-                                    >
-                                        <MdOutlineMail />
-                                        Add patient
-                                    </Button>
-                                </Flex>
-                           
+                            <Box>
+                                <Text fontSize="sm" fontWeight="600" mb={1}>
+                                    Address *
+                                </Text>
+                                <Input
+                                    placeholder="House, street, area, city, PIN"
+                                    {...register("address", {
+                                        required: "Address is required",
+                                    })}
+                                />
+                                {errors.address && (
+                                    <Text color="red.500" fontSize="xs">
+                                        {errors.address.message}
+                                    </Text>
+                                )}
+                            </Box>
+
+                            <Box>
+                                <Text fontSize="sm" fontWeight="600" mb={1}>
+                                    Email *
+                                </Text>
+                                <Input
+                                    type="email"
+                                    placeholder="name@example.com"
+                                    {...register("email", {
+                                        required: "Email is required",
+                                        pattern: {
+                                            value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                                            message: "Enter a valid email",
+                                        },
+                                    })}
+                                />
+                                {errors.email && (
+                                    <Text color="red.500" fontSize="xs">
+                                        {errors.email.message}
+                                    </Text>
+                                )}
+                            </Box>
+
+                            <Box>
+                                <Text fontSize="sm" fontWeight="600" mb={1}>
+                                    Doctor name
+                                </Text>
+
+                                <CustomCombobox
+                                    name="doctor_id"
+                                    values={selectedDoctor}
+                                    control={control}
+                                />
+
+                                <Text fontSize="xs" color="gray.500" mt={1}>
+                                    Select the doctor assigned to this patient.
+                                </Text>
+                            </Box>
+
+                            {submitError && (
+                                <Text color="red.500" fontSize="sm">
+                                    {submitError}
+                                </Text>
+                            )}
+
+                            <Flex justify="flex-end" gap={3} pt={2}>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={handleClose}
+                                    disabled={isSubmitting}
+                                >
+                                    Cancel
+                                </Button>
+
+                                <Button
+                                    type="submit"
+                                    bg="#2160C4"
+                                    color="white"
+                                    _hover={{ bg: "#194FA5" }}
+                                    loading={isSubmitting}
+                                >
+                                    <MdOutlineMail />
+                                    Add patient
+                                </Button>
+                            </Flex>
+
                         </form>
                     </>
                 )}

@@ -36,7 +36,7 @@ function Register() {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     // const [serverError, setServerError] = useState("");
     const { request } = useFetch()
-    const navigate=useNavigate();
+    const navigate = useNavigate();
 
     const {
         register,
@@ -294,6 +294,10 @@ function Register() {
                                         minLength: {
                                             value: 2,
                                             message: "Please enter your full name",
+                                        },
+                                        pattern: {
+                                             value: /^[\p{L}\s]+$/u,
+                                            message: "Name should contain only characters",
                                         },
                                     })}
                                 />

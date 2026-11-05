@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import {
     Box,
@@ -6,14 +7,12 @@ import {
     Input,
     Field,
 } from "@chakra-ui/react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import useFetch from "../../hooks/uesFetch";
 
 function CreatePassword() {
-    const [searchParams] = useSearchParams();
+    const { token } = useParams<{ token: string }>();
     const navigate = useNavigate();
-
-    const token = searchParams.get("token");
 
     const { loading, request } = useFetch<any>();
 
@@ -22,7 +21,9 @@ function CreatePassword() {
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
 
-    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (
+        event: React.FormEvent<HTMLFormElement>
+    ) => {
         event.preventDefault();
 
         setError("");
@@ -105,66 +106,64 @@ function CreatePassword() {
                 <Text fontSize="14px" color="#666" mb={6}>
                     Set a new secure password
                 </Text>
+
                 <form onSubmit={handleSubmit}>
-                    <Box
-                    // as="form" onSubmit={handleSubmit}
+                    <Field.Root mb={4}>
+                        <Field.Label>Password</Field.Label>
+                        <Input
+                            type="password"
+                            placeholder="New Password"
+                            value={password}
+                            onChange={(e) =>
+                                setPassword(e.target.value)
+                            }
+                            required
+                            minLength={8}
+                        />
+                    </Field.Root>
+
+                    <Field.Root mb={6}>
+                        <Field.Label>Confirm Password</Field.Label>
+                        <Input
+                            type="password"
+                            placeholder="Confirm Password"
+                            value={confirmPassword}
+                            onChange={(e) =>
+                                setConfirmPassword(e.target.value)
+                            }
+                            required
+                            minLength={8}
+                        />
+                    </Field.Root>
+
+                    {error && (
+                        <Text color="red.500" fontSize="sm" mb={4}>
+                            {error}
+                        </Text>
+                    )}
+
+                    {success && (
+                        <Text color="green.600" fontSize="sm" mb={4}>
+                            {success}
+                        </Text>
+                    )}
+
+                    <Button
+                        type="submit"
+                        w="100%"
+                        h="52px"
+                        bg="#31B0E6"
+                        color="white"
+                        loading={loading}
+                        disabled={loading || !token}
+                        _hover={{ bg: "#2596c7" }}
                     >
-                        <Field.Root mb={4}>
-                            <Field.Label>Password</Field.Label>
-                            <Input
-                                type="password"
-                                placeholder="New Password"
-                                value={password}
-                                onChange={(event) =>
-                                    setPassword(event.target.value)
-                                }
-                                required
-                            />
-                        </Field.Root>
-
-                        <Field.Root mb={6}>
-                            <Field.Label>Confirm Password</Field.Label>
-                            <Input
-                                type="password"
-                                placeholder="Confirm Password"
-                                value={confirmPassword}
-                                onChange={(event) =>
-                                    setConfirmPassword(event.target.value)
-                                }
-                                required
-                            />
-                        </Field.Root>
-
-                        {error && (
-                            <Text color="red.500" fontSize="sm" mb={4}>
-                                {error}
-                            </Text>
-                        )}
-
-                        {success && (
-                            <Text color="green.600" fontSize="sm" mb={4}>
-                                {success}
-                            </Text>
-                        )}
-
-                        <Button
-                            type="submit"
-                            w="100%"
-                            h="52px"
-                            bg="#31B0E6"
-                            color="white"
-                            loading={loading}
-                            disabled={loading || !token}
-                            _hover={{ bg: "#2596c7" }}
-                        >
-                            Create Password
-                        </Button>
-                    </Box>
+                        Create Password
+                    </Button>
                 </form>
             </Box>
         </Box>
     );
-
 }
 
 export default CreatePassword;

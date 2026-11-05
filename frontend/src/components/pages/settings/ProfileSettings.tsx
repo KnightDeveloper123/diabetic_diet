@@ -28,7 +28,7 @@ interface ProfileForm {
 const ProfileSettings = () => {
 
     const { loading, request } = useFetch();
-    const { user,setUser } = useAuth()
+    const {showAlert, user,setUser } = useAuth()
 
     const initialProfile: ProfileForm = {
 
