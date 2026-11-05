@@ -105,59 +105,62 @@ function CreatePassword() {
                 <Text fontSize="14px" color="#666" mb={6}>
                     Set a new secure password
                 </Text>
-
-                <Box as="form" onSubmit={handleSubmit}>
-                    <Field.Root mb={4}>
-                        <Field.Label>Password</Field.Label>
-                        <Input
-                            type="password"
-                            placeholder="New Password"
-                            value={password}
-                            onChange={(event) =>
-                                setPassword(event.target.value)
-                            }
-                            required
-                        />
-                    </Field.Root>
-
-                    <Field.Root mb={6}>
-                        <Field.Label>Confirm Password</Field.Label>
-                        <Input
-                            type="password"
-                            placeholder="Confirm Password"
-                            value={confirmPassword}
-                            onChange={(event) =>
-                                setConfirmPassword(event.target.value)
-                            }
-                            required
-                        />
-                    </Field.Root>
-
-                    {error && (
-                        <Text color="red.500" fontSize="sm" mb={4}>
-                            {error}
-                        </Text>
-                    )}
-
-                    {success && (
-                        <Text color="green.600" fontSize="sm" mb={4}>
-                            {success}
-                        </Text>
-                    )}
-
-                    <Button
-                        type="submit"
-                        w="100%"
-                        h="52px"
-                        bg="#31B0E6"
-                        color="white"
-                        loading={loading}
-                        disabled={loading || !token}
-                        _hover={{ bg: "#2596c7" }}
+                <form onSubmit={handleSubmit}>
+                    <Box
+                    // as="form" onSubmit={handleSubmit}
                     >
-                        Create Password
-                    </Button>
-                </Box>
+                        <Field.Root mb={4}>
+                            <Field.Label>Password</Field.Label>
+                            <Input
+                                type="password"
+                                placeholder="New Password"
+                                value={password}
+                                onChange={(event) =>
+                                    setPassword(event.target.value)
+                                }
+                                required
+                            />
+                        </Field.Root>
+
+                        <Field.Root mb={6}>
+                            <Field.Label>Confirm Password</Field.Label>
+                            <Input
+                                type="password"
+                                placeholder="Confirm Password"
+                                value={confirmPassword}
+                                onChange={(event) =>
+                                    setConfirmPassword(event.target.value)
+                                }
+                                required
+                            />
+                        </Field.Root>
+
+                        {error && (
+                            <Text color="red.500" fontSize="sm" mb={4}>
+                                {error}
+                            </Text>
+                        )}
+
+                        {success && (
+                            <Text color="green.600" fontSize="sm" mb={4}>
+                                {success}
+                            </Text>
+                        )}
+
+                        <Button
+                            type="submit"
+                            w="100%"
+                            h="52px"
+                            bg="#31B0E6"
+                            color="white"
+                            loading={loading}
+                            disabled={loading || !token}
+                            _hover={{ bg: "#2596c7" }}
+                        >
+                            Create Password
+                        </Button>
+                    </Box>
+                </form>
             </Box>
         </Box>
     );
