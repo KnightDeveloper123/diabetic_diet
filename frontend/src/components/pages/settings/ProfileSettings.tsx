@@ -103,8 +103,10 @@ const ProfileSettings = () => {
                         }
                         : prev
                 );
+                showAlert("Profile updated successfully!", "success");
                 // alert("Profile updated successfully!");
             }
+            showAlert(response?.message, "success");
         } catch (error) {
             console.error("Error updating profile:", error);
         }

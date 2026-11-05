@@ -5,6 +5,7 @@ import {
   Route,
   Routes,
 } from "react-router-dom";
+import {Suspense } from "react"
 
 import { useAuth } from "../context/AuthContext";
 
@@ -34,6 +35,7 @@ import type { UserRole } from "../types/auth.types";
 import { Box, Heading, Text } from "@chakra-ui/react";
 import Reports from "../pages/patient/reports/Reports";
 import CreatePassword from "../pages/auth/CreatePassword";
+import { Toaster } from "../ui/toaster";
 
 function getDashboardPath(role: UserRole) {
   switch (role) {
@@ -85,6 +87,7 @@ function NotFound() {
 
 function AppRoutes() {
   return (
+    <Suspense>
     <HashRouter>
       <Routes>
         <Route path="/" element={<HomeRedirect />} />
@@ -141,6 +144,8 @@ function AppRoutes() {
         <Route path="*" element={<NotFound />} />
       </Routes>
     </HashRouter>
+     <Toaster />
+     </Suspense>
   );
 }
 
