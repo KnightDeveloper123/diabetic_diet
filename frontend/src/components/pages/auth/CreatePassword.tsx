@@ -1,23 +1,40 @@
 import { useState } from "react";
-import { Box, Text, Button, Input, Field } from "@chakra-ui/react";
-
-// type FormData = {
-//     password: string;
-//     confirmPassword: string;
-// };
+import {
+    Box,
+    Text,
+    Button,
+    Input,
+    Field,
+} from "@chakra-ui/react";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import useFetch from "../../hooks/uesFetch";
 
 function CreatePassword() {
+    const [searchParams] = useSearchParams();
+    const navigate = useNavigate();
+
+    const token = searchParams.get("token");
+
+    const { loading, request } = useFetch<any>();
+
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
-    const handleSubmit = (event: any) => {
+
+    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+
         setError("");
         setSuccess("");
 
-        if (password.length < 4) {
-            setError("Password must be at least 4 characters");
+        if (!token) {
+            setError("Invalid or missing password reset token");
+            return;
+        }
+
+        if (password.length < 8) {
+            setError("Password must be at least 8 characters");
             return;
         }
 
@@ -26,8 +43,44 @@ function CreatePassword() {
             return;
         }
 
-        setSuccess("Password validated successfully");
+        try {
+            const response = await request({
+                url: "/api/user/set-password",
+                method: "POST",
+                body: {
+                    token,
+                    password,
+                    confirm_password: confirmPassword,
+                },
+            });
+
+            if (response?.status === 1) {
+                setSuccess(
+                    response.success || "Password created successfully"
+                );
+
+                setPassword("");
+                setConfirmPassword("");
+
+                setTimeout(() => {
+                    navigate("/login", { replace: true });
+                }, 2000);
+            } else {
+                setError(
+                    response?.error ||
+                    response?.message ||
+                    "Unable to create password"
+                );
+            }
+        } catch (err: any) {
+            setError(
+                err?.response?.data?.error ||
+                err?.message ||
+                "Something went wrong. Please try again."
+            );
+        }
     };
+
     return (
         <Box
             minH="100vh"
@@ -60,7 +113,9 @@ function CreatePassword() {
                             type="password"
                             placeholder="New Password"
                             value={password}
-                            onChange={(event) => setPassword(event.target.value)}
+                            onChange={(event) =>
+                                setPassword(event.target.value)
+                            }
                             required
                         />
                     </Field.Root>
@@ -71,7 +126,9 @@ function CreatePassword() {
                             type="password"
                             placeholder="Confirm Password"
                             value={confirmPassword}
-                            onChange={(event) => setConfirmPassword(event.target.value)}
+                            onChange={(event) =>
+                                setConfirmPassword(event.target.value)
+                            }
                             required
                         />
                     </Field.Root>
@@ -94,6 +151,8 @@ function CreatePassword() {
                         h="52px"
                         bg="#31B0E6"
                         color="white"
+                        loading={loading}
+                        disabled={loading || !token}
                         _hover={{ bg: "#2596c7" }}
                     >
                         Create Password
@@ -102,6 +161,7 @@ function CreatePassword() {
             </Box>
         </Box>
     );
+
 }
 
 export default CreatePassword;
