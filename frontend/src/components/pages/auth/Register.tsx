@@ -16,46 +16,75 @@ import {
 import { FaGgCircle } from "react-icons/fa6";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { useForm } from "react-hook-form";
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useNavigate, } from "react-router-dom";
 
 import loginImage from "../../../assets/login.png";
+import useFetch from "../../hooks/uesFetch";
 
 interface RegisterForm {
-    fullName: string;
+    name: string;
     email: string;
     phone: string;
     address: string;
     password: string;
     confirmPassword: string;
+    role: string
 }
 
 function Register() {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    const [serverError, setServerError] = useState("");
+    // const [serverError, setServerError] = useState("");
+    const { request } = useFetch()
+    const navigate=useNavigate();
 
     const {
         register,
         handleSubmit,
-        watch,
+        watch, reset,
         formState: { errors, isSubmitting },
     } = useForm<RegisterForm>();
 
     const password = watch("password");
 
-    const onSubmit = async (values: RegisterForm) => {
-        setServerError("");
-
-        try {
-            // Connect your doctor registration API here.
-            console.log("Registration details:", values);
-
-            // Navigate only after successful API registration.
-            // Example: navigate("/login");
-        } catch {
-            setServerError("Registration failed. Please try again.");
+    const onSubmit = async (data: RegisterForm) => {
+        // console.log(data)
+        const finalData = {
+            ...data,
+            // doctor_id: Array.isArray(data.doctor_id) ? data.doctor_id[0] : data.doctor_id,
+            role: 'doctor'
         }
-    };
+        // console.log(finalData)
+        try {
+            const response = await request({
+                url: '/api/auth/user_register',
+                method: 'POST',
+                body: finalData,
+                withLoader: true
+            })
+            if (response.status === 1) {
+                // showAlert(response.message, 'success')
+
+                reset({
+                    name: '',
+                    email: '',
+                    phone: '',
+                    address: '',
+                    role: '',
+                    password: '',
+                    confirmPassword: '',
+                });
+                navigate('/login')
+            } else {
+                // showAlert(response.message, 'error')
+
+            }
+        } catch (error: any) {
+            console.log(error);
+            // showAlert(error.message, 'error')
+        }
+    }
+
 
     return (
         <Flex
@@ -260,7 +289,7 @@ function Register() {
                                         borderColor: "#2563EB",
                                         boxShadow: "0 0 0 1px #2563EB",
                                     }}
-                                    {...register("fullName", {
+                                    {...register("name", {
                                         required: "Full name is required",
                                         minLength: {
                                             value: 2,
@@ -269,9 +298,9 @@ function Register() {
                                     })}
                                 />
 
-                                {errors.fullName && (
+                                {errors.name && (
                                     <Text color="red.500" fontSize="12px" mt={1}>
-                                        {errors.fullName.message}
+                                        {errors.name.message}
                                     </Text>
                                 )}
                             </Box>
@@ -524,11 +553,11 @@ function Register() {
                             </Box>
 
                             {/* Server Error */}
-                            {serverError && (
+                            {/* {serverError && (
                                 <Text color="red.500" fontSize="sm">
                                     {serverError}
                                 </Text>
-                            )}
+                            )} */}
 
                             {/* Register Button */}
                             <Button

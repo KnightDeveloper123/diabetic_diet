@@ -312,7 +312,7 @@ function Login() {
               color="#6B7280"
               lineHeight="1.6"
             >
-              Welcome back. Log in to review your patients.
+              Welcome back. Log in to upload meals and see your reports.
             </Text>
           </Box>
 
@@ -432,7 +432,7 @@ function Login() {
 
               {/* Server Error */}
               {serverError && (
-                <Text color="red.500" fontSize="sm">
+                <Text color="red.500" fontSize="12px">
                   {serverError}
                 </Text>
               )}

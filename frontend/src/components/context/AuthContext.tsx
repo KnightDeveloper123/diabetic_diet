@@ -12,6 +12,7 @@ import type {
   AuthUser,
   LoginResponse,
 } from "../types/auth.types";
+import { toaster } from "../ui/toaster";
 
 interface AuthContextType {
   user: AuthUser | null;
@@ -20,11 +21,18 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (data: LoginResponse) => void;
   logout: () => Promise<void>;
+     showAlert: (
+        title?: string,
+        type?: string,
+        duration?: number
+    ) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(
   undefined
 );
+
+  
 
 // Get JWT expiration time
 function getTokenExpiration(token: string): number | null {
@@ -59,6 +67,9 @@ export function AuthProvider({
       return null;
     }
   });
+  const showAlert = useCallback((title:string  = '', type:string = "info", duration:number = 2500) => {
+        toaster.create({ title, type, duration: duration, });
+    }, []);
 
   const [token, setToken] = useState<string | null>(() => {
     return sessionStorage.getItem("auth_token");
@@ -168,6 +179,7 @@ export function AuthProvider({
         isAuthenticated,
         login,
         logout,
+        showAlert
       }}
     >
       {children}
