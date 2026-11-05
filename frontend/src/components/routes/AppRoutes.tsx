@@ -10,7 +10,7 @@ import { useAuth } from "../context/AuthContext";
 
 import Login from "../pages/auth/login";
 import Register from "../pages/auth/Register";
-import AdminDashboard from "../pages/admin/AdminDashboard";
+// import AdminDashboard from "../pages/admin/AdminDashboard";
 // import DoctorDashboard from "../pages/doctor/DoctorDashboard";
 import PatientDashboard from "../pages/patient/PatientDashboard";
 import PatientRegister from "../pages/auth/PatientRegister";
@@ -98,7 +98,7 @@ function AppRoutes() {
         {/* Admin routes */}
         <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
           <Route path="/admin" element={<AdminLayout />}>
-            <Route index element={<AdminDashboard />} />
+            <Route index element={<PatientDashboard />} />
             <Route path="patients" element={<Patients />} />
             <Route path="settings" element={<ProfileSettings />} />
             <Route path="/admin/patients/ravi-kulkarni" element={<PatientDetails />} />
