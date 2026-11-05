@@ -6,9 +6,11 @@ import {
     Button,
     Input,
     Field,
+    IconButton,
 } from "@chakra-ui/react";
 import { useParams, useNavigate } from "react-router-dom";
 import useFetch from "../../hooks/uesFetch";
+import { FiEye, FiEyeOff } from "react-icons/fi";
 
 function CreatePassword() {
     const { token } = useParams<{ token: string }>();
@@ -18,6 +20,10 @@ function CreatePassword() {
 
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
+
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
 
@@ -46,7 +52,7 @@ function CreatePassword() {
 
         try {
             const response = await request({
-                url: "/api/user/set-password",
+                url: "/api/auth/set-password",
                 method: "POST",
                 body: {
                     token,
@@ -108,40 +114,132 @@ function CreatePassword() {
                 </Text>
 
                 <form onSubmit={handleSubmit}>
-                    <Field.Root mb={4}>
+                    {/* Password */}
+                    <Field.Root mb={4} >
                         <Field.Label>Password</Field.Label>
-                        <Input
-                            type="password"
-                            placeholder="New Password"
-                            value={password}
-                            onChange={(e) =>
-                                setPassword(e.target.value)
-                            }
-                            required
-                            minLength={8}
-                        />
+
+                        <Box position="relative" w='100%'>
+                            <Input
+                                type={showPassword ? "text" : "password"}
+                                placeholder="Enter your password"
+                                value={password}
+                                onChange={(e) =>
+                                    setPassword(e.target.value)
+                                }
+                                // h="46px"
+                                px={3}
+                                pr="45px"
+                                fontSize="14px"
+                                color="#111827"
+                                border="1px solid"
+                                borderColor="#D1D5DB"
+                                borderRadius="7px"
+                                _placeholder={{ color: "#9CA3AF" }}
+                                _hover={{ borderColor: "#9CA3AF" }}
+                                _focusVisible={{
+                                    borderColor: "#2563EB",
+                                    boxShadow: "0 0 0 1px #2563EB",
+                                }}
+                                required
+                                minLength={8}
+                            />
+
+                            <IconButton
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                position="absolute"
+                                right="6px"
+                                top="50%"
+                                transform="translateY(-50%)"
+                                color="#6B7280"
+                                onClick={() =>
+                                    setShowPassword((prev) => !prev)
+                                }
+                                aria-label={
+                                    showPassword
+                                        ? "Hide password"
+                                        : "Show password"
+                                }
+                                _hover={{ bg: "transparent" }}
+                            >
+                                {showPassword
+                                    ? <FiEyeOff size={18} />
+                                    : <FiEye size={18} />
+                                }
+                            </IconButton>
+                        </Box>
                     </Field.Root>
 
+                    {/* Confirm Password */}
                     <Field.Root mb={6}>
                         <Field.Label>Confirm Password</Field.Label>
-                        <Input
-                            type="password"
-                            placeholder="Confirm Password"
-                            value={confirmPassword}
-                            onChange={(e) =>
-                                setConfirmPassword(e.target.value)
-                            }
-                            required
-                            minLength={8}
-                        />
+
+                        <Box position="relative" w='100%'>
+                            <Input
+                                type={
+                                    showConfirmPassword
+                                        ? "text"
+                                        : "password"
+                                }
+                                placeholder="Confirm your password"
+                                value={confirmPassword}
+                                onChange={(e) =>
+                                    setConfirmPassword(e.target.value)
+                                }
+                                // h="46px"
+                                px={3}
+                                pr="45px"
+                                fontSize="14px"
+                                color="#111827"
+                                border="1px solid"
+                                borderColor="#D1D5DB"
+                                borderRadius="7px"
+                                _placeholder={{ color: "#9CA3AF" }}
+                                _hover={{ borderColor: "#9CA3AF" }}
+                                _focusVisible={{
+                                    borderColor: "#2563EB",
+                                    boxShadow: "0 0 0 1px #2563EB",
+                                }}
+                                required
+                                minLength={8}
+                            />
+
+                            <IconButton
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                position="absolute"
+                                right="6px"
+                                top="50%"
+                                transform="translateY(-50%)"
+                                color="#6B7280"
+                                onClick={() =>
+                                    setShowConfirmPassword((prev) => !prev)
+                                }
+                                aria-label={
+                                    showConfirmPassword
+                                        ? "Hide confirm password"
+                                        : "Show confirm password"
+                                }
+                                _hover={{ bg: "transparent" }}
+                            >
+                                {showConfirmPassword
+                                    ? <FiEyeOff size={18} />
+                                    : <FiEye size={18} />
+                                }
+                            </IconButton>
+                        </Box>
                     </Field.Root>
 
+                    {/* Error Message */}
                     {error && (
                         <Text color="red.500" fontSize="sm" mb={4}>
                             {error}
                         </Text>
                     )}
 
+                    {/* Success Message */}
                     {success && (
                         <Text color="green.600" fontSize="sm" mb={4}>
                             {success}
