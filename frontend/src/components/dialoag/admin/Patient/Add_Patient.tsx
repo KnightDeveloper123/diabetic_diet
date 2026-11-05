@@ -6,7 +6,7 @@ import {
     Flex,
     Input,
     Text,
-    VStack,
+    // VStack,
 } from "@chakra-ui/react";
 import { MdOutlineMail } from "react-icons/md";
 import { useForm } from "react-hook-form";
