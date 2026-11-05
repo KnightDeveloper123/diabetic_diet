@@ -6,9 +6,9 @@ import {
     Table,
     Text,
 } from "@chakra-ui/react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { CiSearch } from "react-icons/ci";
-import { LuPlus, LuChevronRight } from "react-icons/lu";
+import { LuPlus } from "react-icons/lu";
 import AddPatient from "../../../../src/components/dialoag/admin/Patient/Add_Patient";
 import CustomTable from "../../../../src/components/reusable/CustomTable";
 import { useNavigate } from "react-router-dom";
@@ -34,58 +34,58 @@ const Patients = () => {
         })
     }, [page, limit, search])
 
-    const patients = [
-        {
-            id: 1,
-            name: "Ravi Kulkarni",
-            email: "ravi.k@example.com",
-            phone: "+91 98200 11234",
-            address: "Kothrud, Pune",
-        },
-        {
-            id: 2,
-            name: "Meera Iyer",
-            email: "meera.iyer@example.com",
-            phone: "+91 98450 22871",
-            address: "Indiranagar, Bengaluru",
-        },
-        {
-            id: 3,
-            name: "Sanjay Patel",
-            email: "sanjay.p@example.com",
-            phone: "+91 99090 45012",
-            address: "Navrangpura, Ahmedabad",
-        },
-        {
-            id: 4,
-            name: "Fatima Shaikh",
-            email: "fatima.s@example.com",
-            phone: "+91 97690 33310",
-            address: "Bandra West, Mumbai",
-        },
-        {
-            id: 5,
-            name: "Arjun Menon",
-            email: "arjun.menon@example.com",
-            phone: "+91 94470 18822",
-            address: "Kakkanad, Kochi",
-        },
-    ];
+    // const patients = [
+    //     {
+    //         id: 1,
+    //         name: "Ravi Kulkarni",
+    //         email: "ravi.k@example.com",
+    //         phone: "+91 98200 11234",
+    //         address: "Kothrud, Pune",
+    //     },
+    //     {
+    //         id: 2,
+    //         name: "Meera Iyer",
+    //         email: "meera.iyer@example.com",
+    //         phone: "+91 98450 22871",
+    //         address: "Indiranagar, Bengaluru",
+    //     },
+    //     {
+    //         id: 3,
+    //         name: "Sanjay Patel",
+    //         email: "sanjay.p@example.com",
+    //         phone: "+91 99090 45012",
+    //         address: "Navrangpura, Ahmedabad",
+    //     },
+    //     {
+    //         id: 4,
+    //         name: "Fatima Shaikh",
+    //         email: "fatima.s@example.com",
+    //         phone: "+91 97690 33310",
+    //         address: "Bandra West, Mumbai",
+    //     },
+    //     {
+    //         id: 5,
+    //         name: "Arjun Menon",
+    //         email: "arjun.menon@example.com",
+    //         phone: "+91 94470 18822",
+    //         address: "Kakkanad, Kochi",
+    //     },
+    // ];
 
     const [isAddPatientOpen, setIsAddPatientOpen] = useState(false);
 
-    const filteredPatients = useMemo(() => {
-        const value = search.toLowerCase().trim();
+    // const filteredPatients = useMemo(() => {
+    //     const value = search.toLowerCase().trim();
 
-        return allPatient?.data?.filter((patient: any) =>
-            [
-                patient.name,
-                patient.email,
-                patient.phone,
-                patient.address,
-            ].some((field) => field.toLowerCase().includes(value))
-        );
-    }, [search]);
+    //     return allPatient?.data?.filter((patient: any) =>
+    //         [
+    //             patient.name,
+    //             patient.email,
+    //             patient.phone,
+    //             patient.address,
+    //         ].some((field) => field.toLowerCase().includes(value))
+    //     );
+    // }, [search]);
 
     const headers = [
         { name: "PATIENT NAME" },

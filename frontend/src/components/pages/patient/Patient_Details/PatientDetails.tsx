@@ -6,30 +6,30 @@ import {
     GridItem,
     Text,
     Heading,
-    HStack,
+    // HStack,
     // VStack,
 
-    Separator
+    // Separator
 } from "@chakra-ui/react";
 
-import { IoWarningOutline } from "react-icons/io5";
+// import { IoWarningOutline } from "react-icons/io5";
 // import { FcApproval } from "react-icons/fc";
 
-import WeeklyMealChart from "../../../../components/ui/charts/WeeklyMealChart";
-import { FcApproval } from "react-icons/fc";
+// import WeeklyMealChart from "../../../../components/ui/charts/WeeklyMealChart";
+// import { FcApproval } from "react-icons/fc";
 import Icons from "../../../utils/Icons";
 import { useAuth } from "../../../context/AuthContext";
 import Reports from "../reports/Reports";
 // Weekly meal data
-const weeklyData = [
-    { day: "Mon", date: "19 Oct", carbs: 160 },
-    { day: "Tue", date: "20 Oct", carbs: 180 },
-    { day: "Wed", date: "21 Oct", carbs: 190 },
-    { day: "Thu", date: "22 Oct", carbs: 220 },
-    { day: "Fri", date: "23 Oct", carbs: 170 },
-    { day: "Sat", date: "24 Oct", carbs: 210 },
-    { day: "Sun", date: "25 Oct", carbs: 144 },
-];
+// const weeklyData = [
+//     { day: "Mon", date: "19 Oct", carbs: 160 },
+//     { day: "Tue", date: "20 Oct", carbs: 180 },
+//     { day: "Wed", date: "21 Oct", carbs: 190 },
+//     { day: "Thu", date: "22 Oct", carbs: 220 },
+//     { day: "Fri", date: "23 Oct", carbs: 170 },
+//     { day: "Sat", date: "24 Oct", carbs: 210 },
+//     { day: "Sun", date: "25 Oct", carbs: 144 },
+// ];
 
 const PatientDetails = () => {
     const { user } =useAuth();
@@ -73,7 +73,7 @@ const PatientDetails = () => {
                 <VStack align="stretch" gap={2}>
                     <HStack align="flex-start" gap={2}>
                         <Box color="red.600" mt="2px">
-                            <IoWarningOutline size={19} />
+                            // <IoWarningOutline size={19} />
                         </Box>
 
                         <Text fontSize="md" fontWeight="xl" color="gray.700">
@@ -292,7 +292,7 @@ const PatientDetails = () => {
 
                 
                 <Box mt={6}>
-                    <WeeklyMealChart data={weeklyData} />
+                    // <WeeklyMealChart data={weeklyData} />
                 </Box>
 
               
@@ -419,7 +419,7 @@ const PatientDetails = () => {
                                         borderRadius="md"
                                         whiteSpace="nowrap"
                                     >
-                                        <IoWarningOutline size={14} />
+                                        // <IoWarningOutline size={14} />
                                         <Text fontSize="xs" fontWeight="medium">
                                             Above threshold
                                         </Text>

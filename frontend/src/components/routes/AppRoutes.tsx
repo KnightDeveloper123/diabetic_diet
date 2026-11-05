@@ -11,7 +11,7 @@ import { useAuth } from "../context/AuthContext";
 import Login from "../pages/auth/login";
 import Register from "../pages/auth/Register";
 import AdminDashboard from "../pages/admin/AdminDashboard";
-import DoctorDashboard from "../pages/doctor/DoctorDashboard";
+// import DoctorDashboard from "../pages/doctor/DoctorDashboard";
 import PatientDashboard from "../pages/patient/PatientDashboard";
 import PatientRegister from "../pages/auth/PatientRegister";
 import PatientDetails from "../pages/patient/Patient_Details/PatientDetails";
