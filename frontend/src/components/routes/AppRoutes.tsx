@@ -35,6 +35,7 @@ import type { UserRole } from "../types/auth.types";
 import { Box, Heading, Text } from "@chakra-ui/react";
 import Reports from "../pages/patient/reports/Reports";
 import CreatePassword from "../pages/auth/CreatePassword";
+import ForgotPassword from "../pages/auth/ForgotPassword";
 import { Toaster } from "../ui/toaster";
 
 function getDashboardPath(role: UserRole) {
@@ -96,6 +97,12 @@ function AppRoutes() {
         <Route path="/register" element={<Register />} />
 
         <Route  path="/create-password/:token" element={<CreatePassword />} />
+        <Route  path="/forgot" element={<ForgotPassword />} />
+          <Route
+                  path="/reset-password/:token"
+                  element={<CreatePassword />}
+                />
+        
 
         <Route path="/unauthorized" element={<Unauthorized />} />
 

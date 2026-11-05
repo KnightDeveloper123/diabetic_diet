@@ -455,6 +455,19 @@ function Login() {
               </Button>
             </VStack>
           </form>
+          <Flex justify={'flex-end'}>
+             <ChakraLink
+              asChild
+              color="#2563EB"
+              fontSize={12}
+              fontWeight="500"
+              _hover={{ textDecoration: "underline" }}
+            >
+              <RouterLink to="/forgot">
+               Forgot password ?
+              </RouterLink>
+            </ChakraLink>
+          </Flex>
 
           {/* Register Link */}
           <Text
