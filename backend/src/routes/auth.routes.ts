@@ -127,7 +127,7 @@ router.post("/user_register", async (req, res) => {
         await sendMail({
             from: `"Diabetic-Diet-Assistant" <${process.env.EMAIL_USER}>`,
             to: email,
-            subject: "Create Your Password",
+            subject: "Forgot Your Password",
             html,
         });
 
@@ -253,7 +253,7 @@ router.post("/register", async (req, res) => {
         await sendMail({
             from: `"Diabetic-Diet-Assistant" <${process.env.EMAIL_USER}>`,
             to: email,
-            subject: "Create Your Password",
+            subject: "Forgot Your Password",
             html,
         });
 
