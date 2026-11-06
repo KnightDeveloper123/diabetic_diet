@@ -93,10 +93,53 @@ const decodeTypedArray = (
     }
 };
 
-const formatXAxisDate = (value: string | number) => {
-    const date = new Date(value);
+// const formatXAxisDate = (value: string | number) => {
+//     const date = new Date(value);
 
-    if (isNaN(date.getTime())) return String(value);
+//     if (isNaN(date.getTime())) return String(value);
+
+//     const formattedDate = date.toLocaleDateString("en-GB", {
+//         day: "numeric",
+//         month: "short",
+//         year: "numeric",
+//     }).replace(/ /g, "-");
+
+//     const formattedTime = date.toLocaleTimeString("en-US", {
+//         hour: "2-digit",
+//         minute: "2-digit",
+//         hour12: true,
+//     });
+
+//     return `${formattedDate} ${formattedTime}`;
+// };
+
+const formatXAxisDate = (value: string | number) => {
+    if (value === null || value === undefined) return "";
+
+    const rawValue = String(value).trim();
+
+    // Handle numeric X values representing hours (0–24)
+    if (/^\d+(\.\d+)?$/.test(rawValue)) {
+        const hours = Number(rawValue);
+
+        if (hours >= 0 && hours <= 24) {
+            const totalMinutes = Math.round(hours * 60);
+            const hour = Math.floor(totalMinutes / 60) % 24;
+            const minute = totalMinutes % 60;
+
+            const period = hour >= 12 ? "PM" : "AM";
+            const displayHour = hour % 12 || 12;
+
+            return `${String(displayHour).padStart(2, "0")}:${String(minute).padStart(2, "0")} ${period}`;
+        }
+    }
+
+    // Handle actual ISO date strings
+    const date = new Date(rawValue);
+
+    if (isNaN(date.getTime())) {
+        return rawValue;
+    }
 
     const formattedDate = date.toLocaleDateString("en-GB", {
         day: "numeric",
@@ -287,9 +330,13 @@ export const WhatIfGlucoseChart = ({
             .filter((trace) => trace.mode !== "markers")
             .map((trace) => ({
                 ...trace,
-                x: decodeTypedArray(trace.x as NumericArray).map(
-                    (value) => value ?? 0
-                ),
+
+                // Preserve ISO date strings
+                x: Array.isArray(trace.x)
+                    ? trace.x
+                    : decodeTypedArray(trace.x as NumericArray),
+
+                // Decode only numeric Y values
                 y: toNumberArray(trace.y),
             }));
 
