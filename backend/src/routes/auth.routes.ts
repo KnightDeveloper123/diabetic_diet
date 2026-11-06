@@ -8,186 +8,270 @@ import { middleware } from "../middleware/auth.middleware.js";
 import { decrypt, encrypt } from "../utils/security.js";
 import sendMail from "../utils/mail.js";
 import { forgotPassword } from "../utils/mail_template.js";
+import crypto from "crypto";
 
 const router = express.Router()
 
-router.post("/user_register", async (req, res) => {
-  try {
-    const {
-      name,
-      email,
-      phone,
-      password,
-      address,
-      role,
-    } = req.body;
 
-    // validation
+const generatePasswordResetLink = async (user: {
+    id: string;
+    name: string;
+    email: string;
+}) => {
+    const cipherObj = {
+        id: user.id,
+        email: user.email,
+        timestamp: Date.now(),
+    };
 
+    // Use your existing encryption function
+    const encryptedToken = encrypt(JSON.stringify(cipherObj));
 
-    // check existing email
-    const checkUser = await executeQuery(
-      "SELECT * FROM `user` WHERE email = ?",
-      [email]
+    // Save encrypted token and 30-minute expiry
+    await executeQuery(
+        `UPDATE user
+         SET reset_token = ?,
+             reset_token_expire = DATE_ADD(NOW(), INTERVAL 30 MINUTE)
+         WHERE id = ?`,
+        [encryptedToken, user.id]
     );
-    // console.log(checkUser[0])
 
-    if (checkUser.length > 0) {
-      return res.status(400).json({
-        status: 0,
-        message: "Email already exists",
-      });
+    const frontendUrl =
+        process.env.FRONTEND_URL || process.env.FRONT_URL;
+
+    if (!frontendUrl) {
+        throw new Error("Frontend URL is not configured");
     }
 
-    // hash password
-    const secPass = await bcrypt.hash(password, 10);
+    const resetLink =
+        `${frontendUrl}/#/reset-password/${encodeURIComponent(encryptedToken)}`;
 
-    const generateId = generateUUID();
+    return resetLink;
+};
 
-    // insert user
-    const query = `
-      INSERT INTO user
-      (
-      id,
-      name, 
-      email,
-      phone,
-      password,
-      address,
-      role,
-      created_at
-      )
-      VALUES (?, ?, ?, ?, ?, ?, ?, now())
-    `;
+router.post("/user_register", async (req, res) => {
+    try {
+        const {
+            name,
+            email,
+            phone,
+            password,
+            address,
+            role,
+        } = req.body;
 
-    const result = await executeQuery(query, [
-      generateId,
-      name,
-      email,
-      phone,
-      secPass,
-      // password,
-      address,
-      role,
-    ]);
+        // Validation
+        if (!name || !email || !phone || !password || !role) {
+            return res.status(400).json({
+                status: 0,
+                message: "Please provide all required fields",
+            });
+        }
 
+        // Check existing email
+        const checkUser = await executeQuery(
+            "SELECT id FROM user WHERE email = ?",
+            [email]
+        );
 
+        if (checkUser.length > 0) {
+            return res.status(400).json({
+                status: 0,
+                message: "Email already exists",
+            });
+        }
 
-    return res.status(201).json({
-      status: 1,
-      message: "User registered successfully",
-    });
+        // Hash password
+        const secPass = await bcrypt.hash(password, 10);
 
-  } catch (error) {
-    console.log(error);
+        const generateId = generateUUID();
 
-    return res.status(500).json({
-      status: 0,
-      message: "Internal Server Error",
-    });
-  }
+        // Insert user
+        const query = `
+            INSERT INTO user (
+                id,
+                name,
+                email,
+                phone,
+                password,
+                address,
+                role,
+                created_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
+        `;
+
+        await executeQuery(query, [
+            generateId,
+            name,
+            email,
+            phone,
+            secPass,
+            address,
+            role,
+        ]);
+
+        // Generate encrypted reset token and save expiry
+        const resetLink = await generatePasswordResetLink({
+            id: generateId,
+            name,
+            email,
+        });
+
+        // Send reset email
+        const html = forgotPassword({
+            name,
+            link: resetLink,
+        });
+
+        await sendMail({
+            from: `"Diabetic-Diet-Assistant" <${process.env.EMAIL_USER}>`,
+            to: email,
+            subject: "Create Your Password",
+            html,
+        });
+
+        return res.status(201).json({
+            status: 1,
+            message: "User registered successfully. Password setup link sent to email.",
+        });
+
+    } catch (error) {
+        console.error("User Register Error:", error);
+
+        return res.status(500).json({
+            status: 0,
+            message: "Internal Server Error",
+        });
+    }
 });
+
+
 
 router.post("/register", async (req, res) => {
-  try {
-    const {
-      name,
-      email,
-      phone,
-      password,
-      address,
-      doctor_id,
-      role,
-    } = req.body;
+    try {
+        const {
+            name,
+            email,
+            phone,
+            password,
+            address,
+            doctor_id,
+            role,
+        } = req.body;
 
-    // validation
+        // Validation
+        if (!name || !email || !phone || !password || !role) {
+            return res.status(400).json({
+                status: 0,
+                message: "Please provide all required fields",
+            });
+        }
 
+        // Check existing email
+        const checkUser = await executeQuery(
+            "SELECT id FROM user WHERE email = ?",
+            [email]
+        );
 
-    // check existing email
-    const checkUser = await executeQuery(
-      "SELECT * FROM user WHERE email = ?",
-      [email]
-    );
-    // console.log(checkUser[0])
+        if (checkUser.length > 0) {
+            return res.status(400).json({
+                status: 0,
+                message: "Email already exists",
+            });
+        }
 
-    if (checkUser.length > 0) {
-      return res.status(400).json({
-        status: 0,
-        message: "Email already exists",
-      });
+        // Patient doctor validation
+        if (role === "patient" && !doctor_id) {
+            return res.status(400).json({
+                status: 0,
+                message: "Doctor is required for patient",
+            });
+        }
+
+        // Hash password
+        const secPass = await bcrypt.hash(password, 10);
+
+        const generateId = generateUUID();
+
+        // Insert user
+        const query = `
+            INSERT INTO user (
+                id,
+                name,
+                email,
+                phone,
+                password,
+                address,
+                role,
+                created_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
+        `;
+
+        await executeQuery(query, [
+            generateId,
+            name,
+            email,
+            phone,
+            secPass,
+            address,
+            role,
+        ]);
+
+        // Insert patient details
+        if (role === "patient") {
+            const patientQuery = `
+                INSERT INTO patient (
+                    id,
+                    patient_id,
+                    doctor_id
+                )
+                VALUES (?, ?, ?)
+            `;
+
+            await executeQuery(patientQuery, [
+                generateUUID(),
+                generateId,
+                doctor_id,
+            ]);
+        }
+
+        // Generate encrypted reset token and save expiry
+        const resetLink = await generatePasswordResetLink({
+            id: generateId,
+            name,
+            email,
+        });
+
+        // Send reset email
+        const html = forgotPassword({
+            name,
+            link: resetLink,
+        });
+
+        await sendMail({
+            from: `"Diabetic-Diet-Assistant" <${process.env.EMAIL_USER}>`,
+            to: email,
+            subject: "Create Your Password",
+            html,
+        });
+
+        return res.status(201).json({
+            status: 1,
+            message: "User registered successfully. Password setup link sent to email.",
+        });
+
+    } catch (error) {
+        console.error("Register Error:", error);
+
+        return res.status(500).json({
+            status: 0,
+            message: "Internal Server Error",
+        });
     }
-
-    if (role === "patient" && !doctor_id) {
-      res.status(400).json({
-        status: 0,
-        message: "Doctor is required for patient",
-      });
-      return;
-    }
-
-    // hash password
-    const secPass = await bcrypt.hash(password, 10);
-
-    const generateId = generateUUID();
-
-    // insert user
-    const query = `
-      INSERT INTO user
-      (
-      id,
-      name, 
-      email,
-      phone,
-      password,
-      address,
-      role,
-      created_at
-      )
-      VALUES (?, ?, ?, ?, ?, ?, ?, now())
-    `;
-
-    const result = await executeQuery(query, [
-      generateId,
-      name,
-      email,
-      phone,
-      secPass,
-      address,
-      role,
-    ]);
-    if (role === "patient") {
-      const patientQuery = `
-                        INSERT INTO patient
-                        (
-                            id,
-                            patient_id,
-                            doctor_id
-                        )
-                        VALUES (?, ?, ?)
-                    `;
-
-      await executeQuery(patientQuery, [
-        generateUUID(),
-        generateId,
-        doctor_id,
-      ]);
-    }
-
-
-    return res.status(201).json({
-      status: 1,
-      message: "User registered successfully",
-    });
-
-  } catch (error) {
-    console.log(error);
-
-    return res.status(500).json({
-      status: 0,
-      message: "Internal Server Error",
-    });
-  }
 });
+
 
 
 router.post("/login", async (req, res) => {
@@ -232,7 +316,7 @@ router.post("/login", async (req, res) => {
   `,
       [email.trim()]
     );
-    console.log("Login query result:", checkEmployee[0]);
+    // console.log("Login query result:", checkEmployee[0]);
     const user = Array.isArray(checkEmployee)
       ? checkEmployee[0]
       : checkEmployee;
@@ -293,165 +377,220 @@ router.post("/login", async (req, res) => {
   }
 });
 
+// router.post("/set-password", async (req, res) => {
+//   try {
+//     const { token, password, confirm_password } = req.body;
+//     if (!token || !password || !confirm_password) {
+
+//       return res.status(400).json({
+//         status: 0,
+//         error: "All fields are required"
+//       });
+//     }
+
+//     if (password !== confirm_password) {
+
+//       return res.status(400).json({
+//         error: "Password and confirm password do not match"
+//       });
+//     }
+
+//     // Password validation
+//     if (password.length < 8) {
+//       return res.status(400).json({
+//         status: 0,
+//         error: "Password must be at least 8 characters"
+//       });
+//     }
+
+//     // Find employee using token
+//     const employee = await executeQuery(` SELECT *
+//             FROM user
+//             WHERE
+//                 reset_token = ?
+//                 AND reset_token_expire > NOW()
+//             `,
+//       [token]
+//     );
+
+//     if (employee.length === 0) {
+//       return res.status(400).json({
+//         status: 0,
+//         error: "Invalid or expired link"
+//       });
+//     }
+
+//     // Hash password
+//     const salt = bcrypt.genSaltSync(10);
+//     const hashedPassword =
+//       await bcrypt.hash(password, salt);
+//     // Update password
+//     await executeQuery(
+//       ` UPDATE user
+//             SET
+//                 password = ?,
+//                 reset_token = NULL,
+//                 reset_token_expire = NULL,
+//                 updated_at = CURRENT_TIMESTAMP
+//             WHERE id = ?
+//             `,
+//       [
+//         hashedPassword,
+//         employee[0].id
+//       ]
+//     );
+
+//     return res.status(200).json({
+//       status: 1,
+//       success:
+//         "Password created successfully"
+//     });
+
+//   } catch (error) {
+
+//     return res.status(500).json({
+//       status: 0,
+//       error: "Internal Server Error"
+//     });
+//   }
+// });
+
+
+
+
 router.post("/set-password", async (req, res) => {
   try {
     const { token, password, confirm_password } = req.body;
-    if (!token || !password || !confirm_password) {
 
+    if (!token || !password || !confirm_password) {
       return res.status(400).json({
         status: 0,
-        error: "All fields are required"
+        error: "All fields are required",
       });
     }
 
     if (password !== confirm_password) {
-
       return res.status(400).json({
-        error: "Password and confirm password do not match"
+        status: 0,
+        error: "Password and confirm password do not match",
       });
     }
 
-    // Password validation
     if (password.length < 8) {
       return res.status(400).json({
         status: 0,
-        error: "Password must be at least 8 characters"
+        error: "Password must be at least 8 characters",
       });
     }
 
-    // Find employee using token
-    const employee = await executeQuery(` SELECT *
-            FROM user
-            WHERE
-                reset_token = ?
-                AND reset_token_expire > NOW()
-            `,
+    // Find user using the original encrypted token
+    const employee = await executeQuery(
+      `SELECT id
+       FROM user
+       WHERE reset_token = ?
+       AND reset_token_expire > NOW()
+       LIMIT 1`,
       [token]
     );
 
-    if (employee.length === 0) {
+    if (!employee || employee.length === 0) {
       return res.status(400).json({
         status: 0,
-        error: "Invalid or expired link"
+        error: "Invalid or expired link",
       });
     }
 
     // Hash password
-    const salt = bcrypt.genSaltSync(10);
-    const hashedPassword =
-      await bcrypt.hash(password, salt);
-    // Update password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Update password and clear reset token
     await executeQuery(
-      ` UPDATE user
-            SET
-                password = ?,
-                reset_token = NULL,
-                reset_token_expire = NULL,
-                updated_at = CURRENT_TIMESTAMP
-            WHERE id = ?
-            `,
-      [
-        hashedPassword,
-        employee[0].id
-      ]
+      `UPDATE user
+       SET password = ?,
+           reset_token = NULL,
+           reset_token_expire = NULL,
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = ?`,
+      [hashedPassword, employee[0].id]
     );
 
     return res.status(200).json({
       status: 1,
-      success:
-        "Password created successfully"
+      success: "Password created successfully",
     });
 
   } catch (error) {
+    console.error("Set password error:", error);
 
     return res.status(500).json({
       status: 0,
-      error: "Internal Server Error"
+      error: "Internal Server Error",
     });
   }
 });
 
-router.post(
-  "/forgot",
-  async (req, res) => {
+
+
+
+router.post("/forgot", async (req, res) => {
     try {
-      const { email } = req.body as { email?: string };
+        const { email } = req.body as { email?: string };
 
-      if (!email || typeof email !== "string") {
-        res.status(400).json({
-          status: 0,
-          error: "Invalid email",
-        });
-        return;
-      }
+        if (!email || typeof email !== "string") {
+            return res.status(400).json({
+                status: 0,
+                error: "Invalid email",
+            });
+        }
 
-
-
-      // Check whether the user exists
-      const [user] = await executeQuery(
-        `SELECT id, name,email FROM user WHERE email = ? `,
-        [email]
-      );
-
-      if (!user) {
-        res.status(404).json({
-          status: 0,
-          error: "No account found with that email.",
-        });
-        return;
-      }
-
-      // Generate an encrypted reset token
-      const cipherObj = {
-        id: user.id,
-        email: user.email,
-        timestamp: Date.now(),
-      };
-
-      const encryptedToken = encrypt(cipherObj);
-
-      // Frontend URL from environment variables
-      const frontendUrl =
-        process.env.FRONTEND_URL || process.env.FRONT_URL;
-
-      if (!frontendUrl) {
-        throw new Error(
-          "FRONTEND_URL or FRONT_URL is not configured"
+        // Check user
+        const [user] = await executeQuery(
+            `SELECT id, name, email FROM user WHERE email = ?`,
+            [email]
         );
-      }
 
-      // Create reset link
-      const resetLink =
-        `${frontendUrl}/#/reset-password/${encryptedToken}`;
+        if (!user) {
+            return res.status(404).json({
+                status: 0,
+                error: "No account found with that email.",
+            });
+        }
 
-      // // Generate email HTML
-      const html = forgotPassword({
-        name: user.name,
-        link: resetLink,
-      });
+        // Generate encrypted reset token and save expiry
+        const resetLink = await generatePasswordResetLink({
+            id: user.id,
+            name: user.name,
+            email: user.email,
+        });
 
-      // Send reset email
-      await sendMail({
-        from: `"Diabetic-Diet-Assistant" <${process.env.EMAIL_USER}>`,
-        to: user.email,
-        subject: "Reset Your Password",
-        html,
-      });
+        // Generate email HTML
+        const html = forgotPassword({
+            name: user.name,
+            link: resetLink,
+        });
 
-      res.status(200).json({
-        status: 1,
-        success: "Password reset link has been sent to your email.",
-      });
+        // Send reset email
+        await sendMail({
+            from: `"Diabetic-Diet-Assistant" <${process.env.EMAIL_USER}>`,
+            to: user.email,
+            subject: "Reset Your Password",
+            html,
+        });
+
+        return res.status(200).json({
+            status: 1,
+            success: "Password reset link has been sent to your email.",
+        });
+
     } catch (error) {
-      console.error("Error in /forgot:", error);
+        console.error("Error in /forgot:", error);
 
-      res.status(500).json({
-        status: 0,
-        error: "Internal server error.",
-      });
+        return res.status(500).json({
+            status: 0,
+            error: "Internal server error.",
+        });
     }
-  }
-);
+});
 
 router.post("/reset-password", async (req, res) => {
   try {

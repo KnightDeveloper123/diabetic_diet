@@ -8,6 +8,7 @@ import { middleware } from "../middleware/auth.middleware.js";
 import { encrypt } from "../utils/security.js";
 import { createPassword } from "../utils/mail_template.js";
 import sendMail from "../utils/mail.js";
+import crypto from "crypto";
 
 const router = express.Router()
 
@@ -31,112 +32,169 @@ interface CountResult {
 const frontendUrl =
   process.env.FRONTEND_URL || process.env.FRONT_URL;
 
+
 router.post("/add", middleware, async (req, res) => {
-  try {
-    const {
-      name,
-      email,
-      phone,
-      address,
-      doctor_id,
-      role,
-    } = req.body;
+    try {
+        const {
+            name,
+            email,
+            phone,
+            address,
+            doctor_id,
+            role,
+        } = req.body;
 
-    // Check existing email
-    const checkUser = await executeQuery(
-      "SELECT id FROM `user` WHERE email = ?",
-      [email]
-    );
+        // Validate required fields
+        if (!name || !email || !role) {
+            return res.status(400).json({
+                status: 0,
+                message: "Name, email and role are required",
+            });
+        }
 
-    if (checkUser.length > 0) {
-      return res.status(400).json({
-        status: 0,
-        message: "Email already exists",
-      });
-    }
+        // Check existing email
+        const checkUser = await executeQuery(
+            "SELECT id FROM user WHERE email = ?",
+            [email]
+        );
 
-    // Generate user ID
-    const generateId = generateUUID();
+        if (checkUser.length > 0) {
+            return res.status(400).json({
+                status: 0,
+                message: "Email already exists",
+            });
+        }
 
-    // Insert user
-    const userQuery = `
-      INSERT INTO user
-      (
+        // Generate user ID
+        const generateId = generateUUID();
+
+        // Insert user
+        const userQuery = `
+            INSERT INTO user
+            (
+                id,
+                name,
+                email,
+                phone,
+                address,
+                role,
+                created_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, NOW())
+        `;
+
+        await executeQuery(userQuery, [
+            generateId,
+            name,
+            email,
+            phone,
+            address,
+            role,
+        ]);
+        console.log("Generated User ID:", generateId);
+
+        // Assign doctor to patient
+        if (role === "patient" && doctor_id) {
+            const patientQuery = `
+                INSERT INTO patient
+                (
+                    id,
+                    patient_id,
+                    doctor_id
+                )
+                VALUES (?, ?, ?)
+            `;
+
+            await executeQuery(patientQuery, [
+                generateUUID(),
+                generateId,
+                doctor_id,
+            ]);
+        }
+
+        // Generate encrypted token
+        const cipherObj = {
+            id: generateId,
+            email: email,
+            timestamp: Date.now(),
+        };
+
+        const encryptedToken = encrypt(cipherObj);
+
+        // Generate SHA-256 hash
+     // Generate SHA-256 hash
+const hashedToken = crypto
+    .createHash("sha256")
+    .update(encryptedToken)
+    .digest("hex");
+
+// console.log("Generated token:", encryptedToken);
+// console.log("Hashed token:", hashedToken);
+// console.log("Token length:", hashedToken.length);
+
+// // Check connected database
+// const dbInfo = await executeQuery(
+//     "SELECT DATABASE() AS database_name"
+// );
+
+// console.log("Connected database:", dbInfo);
+
+// Update reset token
+const updateResult = await executeQuery(
+    `UPDATE \`user\`
+     SET reset_token = ?,
+         reset_token_expire = DATE_ADD(NOW(), INTERVAL 30 MINUTE)
+     WHERE id = ?`,
+    [hashedToken, generateId]
+);
+
+// console.log("Update result:", updateResult);
+
+// Verify saved token
+const checkToken = await executeQuery(
+    `SELECT
         id,
-        name,
         email,
-        phone,
-        address,
-        role,
-        created_at
-      )
-      VALUES (?, ?, ?, ?, ?, ?, now())
-    `;
+        LENGTH(reset_token) AS token_length,
+        reset_token_expire
+     FROM \`user\`
+     WHERE id = ?`,
+    [generateId]
+);
 
-    await executeQuery(userQuery, [
-      generateId,
-      name,
-      email,
-      phone,
-      address,
-      role,
-    ]);
+// console.log("Verified token:", checkToken);
 
-    // Assign doctor to patient
-    if (role === "patient" && doctor_id) {
-      const patientQuery = `
-        INSERT INTO patient
-        (
-          id,
-          patient_id,
-          doctor_id
-        )
-        VALUES (?, ?, ?)
-      `;
+        // Create password link
+        const resetLink =
+            `${frontendUrl}/#/create-password/${encodeURIComponent(encryptedToken)}`;
 
-      await executeQuery(patientQuery, [
-        generateUUID(),
-        generateId,
-        doctor_id,
-      ]);
+        // Email template
+        const html = createPassword({
+            name: name,
+            link: resetLink,
+        });
+
+        // Send email
+        await sendMail({
+            from: `"Diabetic-Diet-Assistant" <${process.env.EMAIL_USER}>`,
+            to: email,
+            subject: "Create Your Password",
+            html,
+        });
+
+        return res.status(201).json({
+            status: 1,
+            message: "User registered successfully. Password creation link sent to email.",
+        });
+
+    } catch (error) {
+        console.error("Add user error:", error);
+
+        return res.status(500).json({
+            status: 0,
+            message: "Internal Server Error",
+        });
     }
-
-    const cipherObj = {
-      id: generateId,
-      email: email,
-      timestamp: Date.now(),
-    };
-
-    const encryptedToken = encrypt(cipherObj);
-    const resetLink =
-      `${frontendUrl}/#/create-password/${encryptedToken}`;
-
-    const html = createPassword({
-      name: name,
-      link: resetLink,
-    });
-
-    // Send reset email
-    await sendMail({
-      from: `"Diabetic-Diet-Assistant" <${process.env.EMAIL_USER}>`,
-      to: email,
-      subject: "Reset Your Password",
-      html,
-    });
-
-    return res.status(201).json({
-      status: 1,
-      message: "User registered successfully",
-    });
-
-  } catch (error) {
-    console.error("Add user error:", error);
-
-    return res.status(500).json({
-      status: 0,
-      message: "Internal Server Error",
-    });
-  }
 });
 
 
@@ -574,9 +632,9 @@ router.get(
             }
 
             // DEBUG
-            console.log("Doctor ID:", doctor_id);
-            console.log("SQL Query:", query);
-            console.log("SQL Params:", finalParams);
+            // console.log("Doctor ID:", doctor_id);
+            // console.log("SQL Query:", query);
+            // console.log("SQL Params:", finalParams);
 
             const data = await executeQuery(query, finalParams);
 
