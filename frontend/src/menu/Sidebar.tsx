@@ -107,7 +107,7 @@ const SidebarMenu = ({ onNavigate, onLogout }: SidebarMenuProps) => {
 
 
     return (
-        <Flex  direction="column" h="100%" minH="100%">
+        <Flex  direction="column" h="100%" minH="100%" >
             <Box>
                 <Text
                     fontSize="xl"
@@ -139,7 +139,7 @@ const SidebarMenu = ({ onNavigate, onLogout }: SidebarMenuProps) => {
                                         py={3}
                                         borderRadius="8px"
                                         bg={isActive ? "#E0F2FE" : "transparent"}
-                                        color={isActive ? "#31B0E6" : "#475569"}
+                                        color={isActive ? "#31B0E6" : "#ffff"}
                                         fontWeight={isActive ? "600" : "400"}
                                         _hover={{
                                             bg: "#E0F2FE",
@@ -171,7 +171,7 @@ const SidebarMenu = ({ onNavigate, onLogout }: SidebarMenuProps) => {
             px={3}
             mb={2}
             variant="ghost"
-            color="#475569"
+            color="#ffff"
             _hover={{
                 bg: "#FEE2E2",
                 color: "red.600",
@@ -204,13 +204,14 @@ const Sidebar = () => {
             w="240px"
             h="100vh"
             overflowY="auto"
-            bg="white"
+            // color="white"
             borderRight="1px solid"
             borderColor="gray.200"
             py={5}
             px={3}
             fontFamily="Arial, sans-serif"
             zIndex="20"
+            background={'#0f2443'}
         >
             <SidebarMenu onLogout={handleLogout} />
         </Box>
