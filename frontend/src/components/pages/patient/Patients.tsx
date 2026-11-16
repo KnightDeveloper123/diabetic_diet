@@ -335,10 +335,12 @@ const Patients = () => {
                             )}
                         </Table.Body>
                     </CustomTable>
-                    <CustomPagination total_values={allPatient?.pagination?.totalItems}
+                    { allPatient?.pagination && 
+                    allPatient?.pagination?.totalItems > limit  && (<CustomPagination total_values={allPatient?.pagination?.totalItems}
                         page={page}
                         limit={limit}
-                        setpage={setPage} />
+                        setpage={setPage} />)
+                    }
 
                 </Box>
             </Box>

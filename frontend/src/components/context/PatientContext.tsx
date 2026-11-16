@@ -50,7 +50,7 @@ export function PatientProvider({
 
 
       if (response.status === 1) {
-        console.log(response)
+        // console.log(response)
         setAllPatient(response)
       } else {
         // showAlert(response.message || 'Error fetching Patient', 'error')
