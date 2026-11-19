@@ -1,3 +1,4 @@
+
 import {
   createContext,
   useCallback,
@@ -6,23 +7,24 @@ import {
   type ReactNode,
 } from "react";
 
-
 import type { FunctionTypes } from "../types/parameter.typs";
 import type { Patient } from "../types/patient.types";
 import useFetch from "../hooks/uesFetch";
 
-
 export interface FunctionParams {
-  page?: number,
-  limit?: number,
-  search?: string,
+  page?: number;
+  limit?: number;
+  search?: string;
   doctor_id?: string | number;
 }
 
 interface AppContextType {
-  loading: boolean
-  allPatient: FunctionTypes<Patient[]> | null
+  loading: boolean;
+  allPatient: FunctionTypes<Patient[]> | null;
+  patientById: Patient | null;
+
   fetchAllPatient: (param: FunctionParams) => void;
+  fetchPatientById: (patient_id: string) => void;
 }
 
 const PatientContext = createContext<AppContextType | undefined>(
@@ -34,40 +36,65 @@ export function PatientProvider({
 }: {
   children: ReactNode;
 }) {
-
-
   const { loading, request } = useFetch();
-  // const { showAlert, } = useAuth()
 
-  const [allPatient, setAllPatient] = useState<FunctionTypes<Patient[]> | null>(null)
-  const fetchAllPatient = useCallback(async ({ page, limit, search,doctor_id }: FunctionParams) => {
-    try {
-      const response = await request({
-        url: `/api/health/get-all-patient?page=${page}&limit=${limit}&search=${search}&doctor_id=${doctor_id}`,
-        method: "GET",
-        withLoader: true
-      })
+  const [allPatient, setAllPatient] =
+    useState<FunctionTypes<Patient[]> | null>(null);
 
+  const [patientById, setPatientById] =
+    useState<Patient | null>(null);
 
-      if (response.status === 1) {
-        // console.log(response)
-        setAllPatient(response)
-      } else {
-        // showAlert(response.message || 'Error fetching Patient', 'error')
+  // Get all patients
+  const fetchAllPatient = useCallback(
+    async ({ page, limit, search, doctor_id }: FunctionParams) => {
+      try {
+        const response = await request({
+          url: `/api/health/get-all-patient?page=${page}&limit=${limit}&search=${search}&doctor_id=${doctor_id}`,
+          method: "GET",
+          withLoader: true,
+        });
+
+        if (response.status === 1) {
+          setAllPatient(response);
+        }
+      } catch (error: any) {
+        console.log(error);
       }
-    } catch (error: any) {
-      console.log(error);
-      // showAlert(error.message || 'Internal Error', 'error')
-    }
-  }, [])
+    },
+    [request]
+  );
+
+  // Get patient by ID
+  const fetchPatientById = useCallback(
+    async (patient_id: string) => {
+      try {
+        const response = await request({
+          url: `/api/health/get-patient-by-tid?patient_id=${encodeURIComponent(patient_id)}`,
+          method: "GET",
+          withLoader: true,
+        });
+
+        if (response.status === 1) {
+          setPatientById(response.data);
+        } else {
+          setPatientById(null);
+        }
+      } catch (error: any) {
+        console.log("Fetch patient by ID error:", error);
+        setPatientById(null);
+      }
+    },
+    [request]
+  );
 
   return (
     <PatientContext.Provider
       value={{
         loading,
         allPatient,
+        patientById,
         fetchAllPatient,
-
+        fetchPatientById,
       }}
     >
       {children}

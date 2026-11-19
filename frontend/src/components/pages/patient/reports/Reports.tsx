@@ -3,6 +3,7 @@ import { Box, Flex, Input, Spinner, Text } from "@chakra-ui/react";
 import useFetch from "../../../hooks/uesFetch";
 import { useAuth } from "../../../context/AuthContext";
 import { CompareGlucoseChart, GlucoseCarbsScatterChart, GlucoseJourneyChart, TodayGlucoseChart, TodayNutritionRadarChart, WeeklyNutritionRadarChart, WhatIfGlucoseChart, type PythonPlotChart } from "./GlucoseLineChart";
+import { usePatient } from "../../../context/PatientContext";
 
 interface ReportCharts {
     today?: PythonPlotChart;
@@ -54,17 +55,20 @@ const formatDateRange = (start: string, end: string) => {
 
 const Reports = () => {
     const { user } = useAuth();
+    const { patientById } = usePatient();
     const { loading, error, request } = useFetch<any>();
+
+    const reportUserId = user?.role === "patient" ? user?.id : user?.role === "doctor" ? patientById?.id : undefined;
 
     const [reportData, setReportData] = useState<ReportData | null>(null);
     const [selectedDate, setSelectedDate] = useState(getToday());
 
     const fetchReports = useCallback(async () => {
-        if (!user?.id) return;
+        if (!reportUserId) return;
 
         try {
             const response = await request({
-                url: `/api/calculation/reports?userId=${encodeURIComponent(String(user.id))}&date=${encodeURIComponent(selectedDate)}`,
+                url: `/api/calculation/reports?userId=${encodeURIComponent(String(reportUserId))}&date=${encodeURIComponent(selectedDate)}`,
                 method: "GET",
             });
 
@@ -84,7 +88,7 @@ const Reports = () => {
             console.error("Reports API Error:", err);
             setReportData(null);
         }
-    }, [request, selectedDate, user?.id]);
+    }, [request, selectedDate, reportUserId]);
 
     useEffect(() => {
         fetchReports();

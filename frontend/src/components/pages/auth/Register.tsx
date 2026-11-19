@@ -295,8 +295,12 @@ function Register() {
                                             value: 2,
                                             message: "Please enter your full name",
                                         },
+                                        maxLength: {
+                                            value: 50,
+                                            message: "Name cannot exceed 50 characters",
+                                        },
                                         pattern: {
-                                             value: /^[\p{L}\s]+$/u,
+                                            value: /^[\p{L}\s]+$/u,
                                             message: "Name should contain only characters",
                                         },
                                     })}

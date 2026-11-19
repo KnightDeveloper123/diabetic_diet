@@ -685,9 +685,6 @@ router.get(
 );
 
 
-
-
-
 router.get(
   "/get-all-doctor",
   // middleware,
@@ -803,6 +800,79 @@ router.get(
     }
   }
 );
+
+
+router.get(
+    "/get-patient-by-tid",
+    middleware,
+    async (req, res): Promise<void> => {
+        try {
+            const { patient_id } = req.query;
+
+            // Validate patient ID
+            if (!patient_id) {
+                res.status(400).json({
+                    status: 0,
+                    message: "Patient ID is required",
+                });
+                return;
+            }
+
+            const query = `
+                SELECT
+                    u.id,
+                    u.name,
+                    u.email,
+                    u.phone,
+                    u.address,
+                    u.role,
+                    u.status,
+                    u.created_at,
+                    p.doctor_id,
+                    d.name AS doctor_name
+                FROM user u
+
+                LEFT JOIN patient p
+                    ON u.id = p.patient_id
+
+                LEFT JOIN user d
+                    ON d.id = p.doctor_id
+                    AND d.role = 'doctor'
+                    AND d.status = 0
+
+                WHERE
+                    u.id = ?
+                    AND u.role = 'patient'
+                    AND u.status = 0
+            `;
+
+            const data = await executeQuery(query, [patient_id]);
+
+            if (data.length === 0) {
+                res.status(404).json({
+                    status: 0,
+                    message: "Patient not found",
+                });
+                return;
+            }
+
+            res.status(200).json({
+                status: 1,
+                message: "Patient details fetched successfully",
+                data: data[0],
+            });
+
+        } catch (error) {
+            console.error("Get patient by ID error:", error);
+
+            res.status(500).json({
+                status: 0,
+                message: "Internal server error",
+            });
+        }
+    }
+);
+
 
 
 

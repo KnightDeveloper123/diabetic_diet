@@ -187,6 +187,10 @@ const AddPatient = ({ open, onClose, onAdded, afterFunction }: AddPatientProps) 
                                     placeholder="Full name"
                                     {...register("name", {
                                         required: "Patient name is required",
+                                        maxLength: {
+                                            value: 50,
+                                            message: "Name cannot exceed 50 characters",
+                                        },
                                         pattern: {
                                             value: /^[A-Za-z ]+$/,
                                             message: "Only letters are allowed",

@@ -328,6 +328,10 @@ function PatientRegister() {
                                             value: 2,
                                             message: "Please enter at least 2 characters",
                                         },
+                                        maxLength: {
+                                            value: 50,
+                                            message: "Name cannot exceed 50 characters",
+                                        },
                                         pattern: {
                                             value: /^[A-Za-z ]+$/,
                                             message: "Only letters are allowed",
@@ -335,7 +339,7 @@ function PatientRegister() {
                                         onChange: (e) => {
                                             e.target.value = e.target.value.replace(/[^A-Za-z ]/g, "");
                                         },
-                                    })}
+                                    })} 
                                 />
 
                                 {errors.name && (

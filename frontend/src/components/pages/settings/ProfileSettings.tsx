@@ -28,7 +28,7 @@ interface ProfileForm {
 const ProfileSettings = () => {
 
     const { loading, request } = useFetch();
-    const {showAlert, user,setUser } = useAuth()
+    const { showAlert, user, setUser } = useAuth()
 
     const initialProfile: ProfileForm = {
 
@@ -106,7 +106,7 @@ const ProfileSettings = () => {
                 showAlert("Profile updated successfully!", "success");
                 // alert("Profile updated successfully!");
             }
-            showAlert(response?.message, "success");
+            showAlert(response?.message, "error");
         } catch (error) {
             console.error("Error updating profile:", error);
         }
@@ -265,15 +265,15 @@ const ProfileSettings = () => {
                         )}
 
                         {user?.role === 'patient' &&
-                         renderField(
-                            "Doctor Name",
-                            "doctor_name",
-                            "Enter doctor name",
-                            "text",
-                            true
-                        )} 
+                            renderField(
+                                "Doctor Name",
+                                "doctor_name",
+                                "Enter doctor name",
+                                "text",
+                                true
+                            )}
 
-                       
+
 
                         <Box gridColumn={{ base: "auto", md: "1 / -1" }}>
                             <Text
