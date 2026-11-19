@@ -9,6 +9,7 @@ import {
 } from "@chakra-ui/react";
 import useFetch from "../../hooks/uesFetch";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 const ForgotPassword = () => {
     const { loading, request } = useFetch<any>();
@@ -16,9 +17,10 @@ const ForgotPassword = () => {
     const [email, setEmail] = useState("");
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
-    const navigate=useNavigate();
+    const navigate = useNavigate();
+    const { showAlert } = useAuth();
 
-  const handleSubmit = async (
+    const handleSubmit = async (
         event: React.FormEvent<HTMLFormElement>
     ) => {
         event.preventDefault();
@@ -46,11 +48,8 @@ const ForgotPassword = () => {
             });
 
             if (response?.status === 1) {
-                setSuccess(
-                    response.message ||
-                    response.success ||
-                    "Password reset link sent successfully. Please check your email."
-                );
+                showAlert(response.message || response.success || "Password reset link sent successfully. Please check your email.", "success")
+                setSuccess(response.message || response.success || "Password reset link sent successfully. Please check your email.");
 
                 setEmail("");
                 navigate('/login')
@@ -88,7 +87,7 @@ const ForgotPassword = () => {
                     Enter your email address to receive a password reset link.
                 </Text>
 
-                <form  onSubmit={handleSubmit}>
+                <form onSubmit={handleSubmit}>
                     <Field.Root invalid={!!error}>
                         <Input
                             type="email"

@@ -458,6 +458,7 @@ router.post("/login", async (req, res) => {
 
 
 
+
 router.post("/set-password", async (req, res) => {
   try {
     const { token, password, confirm_password } = req.body;
@@ -483,15 +484,22 @@ router.post("/set-password", async (req, res) => {
       });
     }
 
-    // Find user using the original encrypted token
-    const employee = await executeQuery(
-      `SELECT id
-       FROM user
-       WHERE reset_token = ?
-       AND reset_token_expire > NOW()
-       LIMIT 1`,
-      [token]
-    );
+    // Decode token only if it is still URL-encoded
+    const originalToken = token;
+
+const hashedToken = crypto
+  .createHash("sha256")
+  .update(originalToken)
+  .digest("hex");
+
+const employee = await executeQuery(
+  `SELECT id
+   FROM user
+   WHERE reset_token IN (?, ?)
+   AND reset_token_expire > NOW()
+   LIMIT 1`,
+  [originalToken, hashedToken]
+);
 
     if (!employee || employee.length === 0) {
       return res.status(400).json({
@@ -500,10 +508,8 @@ router.post("/set-password", async (req, res) => {
       });
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Update password and clear reset token
     await executeQuery(
       `UPDATE user
        SET password = ?,
@@ -528,6 +534,7 @@ router.post("/set-password", async (req, res) => {
     });
   }
 });
+
 
 
 
